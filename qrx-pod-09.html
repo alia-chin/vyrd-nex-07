@@ -1,0 +1,2411 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="theme-color" content="#F6F6F6">
+    <link rel="manifest" href="zev-slip-71.webmanifest">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="今日気分">
+    <link rel="apple-touch-icon" href="icons/a0-pod-apple.png">
+    <title>今日気分 · 许律状态观测站</title>
+    <style>
+        :root {
+            --deep: #F6F6F6;
+            --deep-2: #FFFFFF;
+            --card: #FFFFFF;
+            --card-border: #E3E8EC;
+            --ink: #2B3B4C;
+            --ink-light: #6B7A89;
+            --amber: #5289C6;
+            --amber-soft: rgba(82, 137, 198, 0.12);
+            --sea: #4FA3E0;
+            --sage: #5FA87C;
+            --shadow: 0 4px 20px rgba(46, 74, 102, 0.08);
+            --serif: "Songti SC", "STSong", "Noto Serif SC", "SimSun", serif;
+            --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--sans);
+            background:
+                radial-gradient(ellipse 90% 45% at 70% -8%, rgba(82, 137, 198, 0.10), transparent),
+                linear-gradient(180deg, #EFF3F7 0%, var(--deep) 55%, #F1F3F5 100%);
+            background-attachment: fixed;
+            color: var(--ink);
+            line-height: 1.7;
+            min-height: 100vh;
+            padding: 32px 16px 56px;
+        }
+
+        .container {
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .title-jp {
+            font-family: var(--serif);
+            font-size: 32px;
+            font-weight: 600;
+            letter-spacing: 0.22em;
+            color: var(--ink);
+            margin-bottom: 6px;
+        }
+
+        .title-sub {
+            font-size: 12px;
+            color: var(--ink-light);
+            letter-spacing: 0.14em;
+        }
+
+        .title-rule {
+            width: 32px;
+            height: 1px;
+            background: var(--ink-light);
+            opacity: 0.45;
+            margin: 14px auto 0;
+        }
+
+        .date-today {
+            margin-top: 14px;
+            font-size: 13px;
+            color: var(--ink-light);
+            letter-spacing: 0.06em;
+        }
+
+        .card {
+            background: var(--card);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--card-border);
+        }
+
+        .card-title {
+            font-size: 13px;
+            color: var(--ink-light);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 0.08em;
+        }
+
+        /* ===== 情绪储蓄罐 ===== */
+        .jar-card {
+            text-align: center;
+            padding: 28px 24px 20px;
+        }
+
+        .jar-title {
+            font-family: var(--serif);
+            font-size: 19px;
+            font-weight: 600;
+            letter-spacing: 0.18em;
+            color: var(--ink);
+        }
+
+        .jar-sub {
+            font-size: 12px;
+            color: var(--ink-light);
+            margin-top: 4px;
+            letter-spacing: 0.08em;
+        }
+
+        #jarCanvas {
+            display: block;
+            width: 100%;
+            max-width: 360px;
+            height: auto;
+            margin: 10px auto 0;
+        }
+
+        .jar-count {
+            font-size: 12px;
+            color: var(--ink-light);
+            margin-top: 6px;
+            letter-spacing: 0.05em;
+        }
+
+        /* ===== 记录表单 ===== */
+        .slider-group {
+            margin-bottom: 22px;
+        }
+
+        .slider-group:last-of-type {
+            margin-bottom: 0;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .slider-name {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .slider-value {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--amber);
+            min-width: 28px;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 22px;
+            border-radius: 11px;
+            background: transparent;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(46, 74, 102, 0.12);
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            margin-top: -8px;
+            background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><clipPath id='bc'><circle cx='50' cy='50' r='47'/></clipPath></defs><circle cx='50' cy='50' r='47' fill='%23FFFFFF'/><g clip-path='url(%23bc)'><g stroke='%233E6B97' stroke-width='3.5' stroke-linecap='round'><line x1='0' y1='-14' x2='0' y2='-46' transform='translate(50,50)'/><line x1='0' y1='-14' x2='0' y2='-46' transform='translate(50,50) rotate(72)'/><line x1='0' y1='-14' x2='0' y2='-46' transform='translate(50,50) rotate(144)'/><line x1='0' y1='-14' x2='0' y2='-46' transform='translate(50,50) rotate(216)'/><line x1='0' y1='-14' x2='0' y2='-46' transform='translate(50,50) rotate(288)'/></g><g fill='%233E6B97'><polygon points='0,-16 15.2,-4.9 9.4,12.9 -9.4,12.9 -15.2,-4.9' transform='translate(50,50)'/><polygon points='0,-11 10.5,-3.4 6.5,8.9 -6.5,8.9 -10.5,-3.4' transform='translate(50,50) translate(0,-48)'/><polygon points='0,-11 10.5,-3.4 6.5,8.9 -6.5,8.9 -10.5,-3.4' transform='translate(50,50) rotate(72) translate(0,-48)'/><polygon points='0,-11 10.5,-3.4 6.5,8.9 -6.5,8.9 -10.5,-3.4' transform='translate(50,50) rotate(144) translate(0,-48)'/><polygon points='0,-11 10.5,-3.4 6.5,8.9 -6.5,8.9 -10.5,-3.4' transform='translate(50,50) rotate(216) translate(0,-48)'/><polygon points='0,-11 10.5,-3.4 6.5,8.9 -6.5,8.9 -10.5,-3.4' transform='translate(50,50) rotate(288) translate(0,-48)'/></g></g><circle cx='50' cy='50' r='47' fill='none' stroke='%235289C6' stroke-width='4'/></svg>") center / contain no-repeat;
+            border: none;
+            box-shadow: 0 0 10px rgba(82, 137, 198, 0.35);
+            cursor: pointer;
+            transition: transform 0.15s ease;
+        }
+
+        input[type="range"]:active::-webkit-slider-thumb {
+            transform: scale(1.15);
+        }
+
+        input[type="range"]:focus::-webkit-slider-thumb {
+            box-shadow: 0 0 0 4px var(--amber-soft);
+        }
+
+        input[type="range"]::-moz-range-track {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(46, 74, 102, 0.12);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><clipPath id='bc'><circle cx='50' cy='50' r='47'/></clipPath></defs><circle cx='50' cy='50' r='47' fill='%23FFFFFF'/><g clip-path='url(%23bc)'><g stroke='%233E6B97' stroke-width='3.5' stroke-linecap='round'><line x1='0' y1='-14' x2='0' y2='-46' transform='translate(50,50)'/><line x1='0' y1='-14' x2='0' y2='-46' transform='translate(50,50) rotate(72)'/><line x1='0' y1='-14' x2='0' y2='-46' transform='translate(50,50) rotate(144)'/><line x1='0' y1='-14' x2='0' y2='-46' transform='translate(50,50) rotate(216)'/><line x1='0' y1='-14' x2='0' y2='-46' transform='translate(50,50) rotate(288)'/></g><g fill='%233E6B97'><polygon points='0,-16 15.2,-4.9 9.4,12.9 -9.4,12.9 -15.2,-4.9' transform='translate(50,50)'/><polygon points='0,-11 10.5,-3.4 6.5,8.9 -6.5,8.9 -10.5,-3.4' transform='translate(50,50) translate(0,-48)'/><polygon points='0,-11 10.5,-3.4 6.5,8.9 -6.5,8.9 -10.5,-3.4' transform='translate(50,50) rotate(72) translate(0,-48)'/><polygon points='0,-11 10.5,-3.4 6.5,8.9 -6.5,8.9 -10.5,-3.4' transform='translate(50,50) rotate(144) translate(0,-48)'/><polygon points='0,-11 10.5,-3.4 6.5,8.9 -6.5,8.9 -10.5,-3.4' transform='translate(50,50) rotate(216) translate(0,-48)'/><polygon points='0,-11 10.5,-3.4 6.5,8.9 -6.5,8.9 -10.5,-3.4' transform='translate(50,50) rotate(288) translate(0,-48)'/></g></g><circle cx='50' cy='50' r='47' fill='none' stroke='%235289C6' stroke-width='4'/></svg>") center / contain no-repeat;
+            border: none;
+            box-shadow: 0 0 10px rgba(82, 137, 198, 0.35);
+            cursor: pointer;
+        }
+
+        .meal-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px dashed var(--card-border);
+        }
+
+        .meal-options {
+            display: flex;
+            gap: 10px;
+        }
+
+        .meal-btn {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 12px 6px;
+            background: rgba(46, 74, 102, 0.04);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            font-size: 13px;
+            color: var(--ink-light);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .meal-btn.active {
+            background: var(--amber-soft);
+            border-color: var(--amber);
+            color: var(--ink);
+            font-weight: 500;
+        }
+
+        .meal-hint {
+            font-size: 12px;
+            color: var(--ink-light);
+            margin-top: 12px;
+        }
+
+        .recovery-section-input {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px dashed var(--card-border);
+        }
+
+        .recovery-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .recovery-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 14px;
+            background: rgba(46, 74, 102, 0.04);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--ink-light);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .recovery-btn.active {
+            background: var(--amber-soft);
+            border-color: var(--amber);
+            color: var(--ink);
+            font-weight: 500;
+        }
+
+        .recovery-tags {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .recovery-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--amber-soft);
+            padding: 5px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            color: var(--ink);
+        }
+
+        .note-input {
+            width: 100%;
+            min-height: 76px;
+            padding: 12px;
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            font-size: 14px;
+            resize: vertical;
+            font-family: inherit;
+            background: #F7F9FB;
+            color: var(--ink);
+            line-height: 1.6;
+        }
+
+        .note-input::placeholder {
+            color: rgba(107, 122, 137, 0.55);
+        }
+
+        .note-input:focus {
+            outline: none;
+            border-color: var(--amber);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            margin-top: 20px;
+            background: var(--amber);
+            color: #FFFFFF;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.14em;
+            font-family: var(--sans);
+        }
+
+        .btn-submit:hover {
+            background: #4376AC;
+        }
+
+        .btn-submit:active {
+            transform: scale(0.99);
+        }
+
+        /* ===== 结果卡 ===== */
+        .result-card {
+            display: none;
+            text-align: center;
+            padding: 32px 24px;
+        }
+
+        .result-card.show {
+            display: block;
+            animation: fadeIn 0.6s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .weather-icon {
+            font-size: 60px;
+            margin-bottom: 10px;
+        }
+
+        .weather-title {
+            font-family: var(--serif);
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            margin-bottom: 6px;
+        }
+
+        .weather-desc {
+            font-size: 13px;
+            color: var(--ink-light);
+            margin-bottom: 22px;
+        }
+
+        .football-persona {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(46, 74, 102, 0.05);
+            border: 1px solid var(--card-border);
+            padding: 7px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--ink-light);
+            margin-bottom: 12px;
+        }
+
+        .meal-result {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--amber-soft);
+            padding: 7px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--ink);
+            margin-bottom: 16px;
+        }
+
+        .streak-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--amber-soft);
+            padding: 7px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--amber);
+            margin-bottom: 20px;
+            border: 1px solid rgba(82, 137, 198, 0.35);
+        }
+
+        .streak-badge .badge-icon {
+            font-size: 15px;
+        }
+
+        .encourage-text {
+            font-size: 15px;
+            line-height: 1.9;
+            color: var(--ink);
+            padding: 16px;
+            background: #F2F6FA;
+            border-radius: 12px;
+            border-left: 3px solid var(--amber);
+            text-align: left;
+        }
+
+        /* ===== 历史 ===== */
+        .history-section {
+            margin-top: 16px;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .history-item {
+            padding: 12px;
+            background: #F7F9FB;
+            border: 1px solid #E8EDF1;
+            border-radius: 10px;
+            font-size: 13px;
+        }
+
+        .history-main {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-date {
+            color: var(--ink-light);
+            min-width: 60px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .history-weather {
+            flex: 1;
+            text-align: center;
+        }
+
+        .history-score {
+            color: var(--amber);
+            font-weight: 500;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .history-note {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed var(--card-border);
+            color: var(--ink-light);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .chart {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            height: 100px;
+            padding-top: 20px;
+            gap: 6px;
+        }
+
+        .chart-bar {
+            flex: 1;
+            background: rgba(82, 137, 198, 0.3);
+            border-radius: 4px 4px 0 0;
+            min-height: 4px;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .chart-bar:last-child {
+            background: var(--amber);
+        }
+
+        .chart-bar-label {
+            position: absolute;
+            top: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: var(--ink-light);
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 32px;
+            color: var(--ink-light);
+            font-size: 14px;
+        }
+
+        /* ===== 每日一句 ===== */
+        .quote-card {
+            text-align: center;
+        }
+
+        .quote-jp {
+            font-family: var(--serif);
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--ink);
+            margin-bottom: 8px;
+            letter-spacing: 0.08em;
+        }
+
+        .quote-cn {
+            font-size: 15px;
+            color: var(--amber);
+            margin-bottom: 8px;
+        }
+
+        .quote-en {
+            font-size: 18px;
+            font-style: italic;
+            letter-spacing: 0.02em;
+        }
+
+        .quote-desc {
+            font-size: 13px;
+            color: var(--ink-light);
+        }
+
+        .share-section {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px dashed var(--card-border);
+        }
+
+        .share-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            background: rgba(46, 74, 102, 0.05);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            font-size: 14px;
+            color: var(--ink);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: var(--sans);
+        }
+
+        .share-btn:hover {
+            background: rgba(46, 74, 102, 0.1);
+        }
+
+        #shareCanvas,
+        #weeklyCanvas,
+        #jarCardCanvas {
+            display: none;
+        }
+
+        /* ===== 周报 ===== */
+        .weekly-report-card {
+            display: none;
+            text-align: center;
+        }
+
+        .weekly-report-card.show {
+            display: block;
+            animation: fadeIn 0.6s ease;
+        }
+
+        .weekly-result {
+            font-family: var(--serif);
+            font-size: 44px;
+            font-weight: 600;
+            margin: 8px 0 20px;
+        }
+
+        .weekly-result.win { color: var(--sage); }
+        .weekly-result.draw { color: var(--amber); }
+        .weekly-result.lose { color: var(--sea); }
+
+        .weekly-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .weekly-stat {
+            background: #F2F6FA;
+            border: 1px solid #E8EDF1;
+            border-radius: 12px;
+            padding: 14px 8px;
+        }
+
+        .weekly-stat-value {
+            font-size: 22px;
+            font-weight: 500;
+            color: var(--amber);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .weekly-stat-label {
+            font-size: 11px;
+            color: var(--ink-light);
+            margin-top: 4px;
+        }
+
+        .weekly-note {
+            font-size: 14px;
+            color: var(--ink-light);
+            line-height: 1.8;
+            text-align: left;
+            background: #F2F6FA;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .weekly-note p {
+            margin-bottom: 8px;
+        }
+
+        .weekly-note p:last-child {
+            margin-bottom: 0;
+        }
+
+        .weekly-mvp {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--amber-soft);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--ink);
+            margin-bottom: 20px;
+        }
+
+        .share-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: 40px;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--ink);
+            color: var(--deep);
+            padding: 12px 20px;
+            border-radius: 24px;
+            font-size: 14px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ===== 满罐纪念弹窗 ===== */
+        .jar-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(43, 59, 76, 0.45);
+            backdrop-filter: blur(6px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            padding: 24px;
+        }
+
+        .jar-modal.show {
+            display: flex;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .jar-modal-card {
+            background: var(--deep-2);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 24px;
+            max-width: 360px;
+            width: 100%;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .jar-modal-title {
+            font-family: var(--serif);
+            font-size: 22px;
+            color: var(--amber);
+            margin-bottom: 6px;
+        }
+
+        .jar-modal-sub {
+            font-size: 13px;
+            color: var(--ink-light);
+            margin-bottom: 16px;
+        }
+
+        .jar-modal-card img {
+            width: 100%;
+            border-radius: 12px;
+            display: block;
+            margin-bottom: 16px;
+        }
+
+        .jar-modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .jar-modal-actions .share-btn.primary {
+            background: var(--amber-soft);
+            border-color: rgba(82, 137, 198, 0.35);
+            color: var(--amber);
+        }
+
+        @media (max-width: 400px) {
+            .title-jp { font-size: 27px; }
+            .card { padding: 20px; }
+            .weekly-stats { gap: 8px; }
+            .weekly-stat { padding: 12px 4px; }
+            .weekly-stat-value { font-size: 18px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="title-jp">今日気分</div>
+            <div class="title-sub">许律状态观测站</div>
+            <div class="title-rule"></div>
+            <div class="date-today" id="dateToday"></div>
+        </header>
+
+        <div class="card jar-card">
+            <div class="jar-title">情绪储蓄罐</div>
+            <div class="jar-sub">每天一颗情绪胶囊</div>
+            <canvas id="jarCanvas" width="640" height="520"></canvas>
+            <div class="jar-count" id="jarCount"></div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">
+                <span>✎</span>
+                <span>今日五维状态</span>
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-label">
+                    <div class="slider-name">
+                        <span>🔋</span>
+                        <span>能量值</span>
+                    </div>
+                    <div class="slider-value" id="val-energy">7</div>
+                </div>
+                <input type="range" id="energy" min="1" max="10" value="7">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-label">
+                    <div class="slider-name">
+                        <span>🎐</span>
+                        <span>心情值</span>
+                    </div>
+                    <div class="slider-value" id="val-mood">6</div>
+                </div>
+                <input type="range" id="mood" min="1" max="10" value="6">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-label">
+                    <div class="slider-name">
+                        <span>🌡️</span>
+                        <span>身体值</span>
+                    </div>
+                    <div class="slider-value" id="val-body">5</div>
+                </div>
+                <input type="range" id="body" min="1" max="10" value="5">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-label">
+                    <div class="slider-name">
+                        <span>🌙</span>
+                        <span>睡眠值</span>
+                    </div>
+                    <div class="slider-value" id="val-sleep">6</div>
+                </div>
+                <input type="range" id="sleep" min="1" max="10" value="6">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-label">
+                    <div class="slider-name">
+                        <span>🪨</span>
+                        <span>案压值</span>
+                    </div>
+                    <div class="slider-value" id="val-stress">8</div>
+                </div>
+                <input type="range" id="stress" min="1" max="10" value="8">
+            </div>
+
+            <div class="meal-section">
+                <div class="card-title" style="margin-bottom: 12px;">
+                    <span>🍚</span>
+                    <span>今天好好吃饭了吗？</span>
+                </div>
+                <div class="meal-options" id="mealOptions">
+                    <button class="meal-btn active" data-meal="good">
+                        <span>🍚</span>
+                        <span>好好吃了</span>
+                    </button>
+                    <button class="meal-btn" data-meal="casual">
+                        <span>🍞</span>
+                        <span>随便对付</span>
+                    </button>
+                    <button class="meal-btn" data-meal="skipped">
+                        <span>⏳</span>
+                        <span>没顾上</span>
+                    </button>
+                </div>
+                <div class="meal-hint" id="mealHint">好好吃饭也是恢复的一部分。</div>
+            </div>
+
+            <div class="recovery-section-input">
+                <div class="card-title" style="margin-bottom: 12px;">
+                    <span>🛁</span>
+                    <span>今天怎么恢复的？（可多选）</span>
+                </div>
+                <div class="recovery-options" id="recoveryOptions">
+                    <button class="recovery-btn active" data-recovery="sleep">
+                        <span>😴</span>
+                        <span>睡觉</span>
+                    </button>
+                    <button class="recovery-btn" data-recovery="nap">
+                        <span>😪</span>
+                        <span>午休</span>
+                    </button>
+                    <button class="recovery-btn active" data-recovery="solitude">
+                        <span>🏠</span>
+                        <span>独处</span>
+                    </button>
+                    <button class="recovery-btn" data-recovery="soccer">
+                        <span>⚽</span>
+                        <span>看球</span>
+                    </button>
+                    <button class="recovery-btn" data-recovery="walk">
+                        <span>🚶</span>
+                        <span>散步</span>
+                    </button>
+                    <button class="recovery-btn" data-recovery="book">
+                        <span>📖</span>
+                        <span>看书</span>
+                    </button>
+                    <button class="recovery-btn" data-recovery="phone">
+                        <span>📱</span>
+                        <span>刷手机</span>
+                    </button>
+                    <button class="recovery-btn" data-recovery="meal">
+                        <span>🍜</span>
+                        <span>好好吃饭</span>
+                    </button>
+                    <button class="recovery-btn" data-recovery="none">
+                        <span>🍃</span>
+                        <span>还没有</span>
+                    </button>
+                </div>
+                <div class="meal-hint" id="recoveryHint">选今天实际做过的恢复方式，多选。</div>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <textarea class="note-input" id="note" placeholder="今天想记下的一句（可选）……"></textarea>
+            </div>
+
+            <button class="btn-submit" id="submitBtn">收下今日天气</button>
+        </div>
+
+        <div class="card result-card" id="resultCard">
+            <div class="weather-icon" id="weatherIcon">☀️</div>
+            <div class="weather-title" id="weatherTitle">晴</div>
+            <div class="weather-desc" id="weatherDesc">能量在线，光落在水面上</div>
+
+            <div class="football-persona" id="footballPersona">
+                <span>⚽</span>
+                <span id="personaText">今日球风：高位逼抢型</span>
+            </div>
+
+            <div class="meal-result" id="mealResult" style="display: none;"></div>
+            <div class="recovery-tags" id="recoveryTags" style="display: none;"></div>
+
+            <div class="streak-badge" id="streakBadge" style="display: none;">
+                <span class="badge-icon">🔥</span>
+                <span id="streakText">连续记录 0 天</span>
+            </div>
+
+            <div class="encourage-text" id="encourageText"></div>
+
+            <div class="share-section">
+                <button class="share-btn" id="shareBtn">
+                    <span>📷</span>
+                    <span>保存今日气象卡</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="card quote-card">
+            <div class="card-title" style="justify-content: center; margin-bottom: 16px;">
+                <span>💌</span>
+                <span>今日一句</span>
+            </div>
+            <div class="quote-jp" id="quoteJp">頑張らなくていい</div>
+            <div class="quote-cn" id="quoteCn">不用一直努力</div>
+            <div class="quote-desc" id="quoteDesc">今天也可以只是淡淡地度过</div>
+        </div>
+
+        <div class="card history-section">
+            <div class="card-title">
+                <span>📈</span>
+                <span>近7天能量趋势</span>
+            </div>
+            <div class="chart" id="trendChart"></div>
+            <div class="history-list" id="historyList"></div>
+
+            <div class="share-section">
+                <div class="share-actions">
+                    <button class="share-btn" id="weeklyReportBtn">
+                        <span>📔</span>
+                        <span>生成本周回顾</span>
+                    </button>
+                    <button class="share-btn" id="shareCodeBtn">
+                        <span>🗂</span>
+                        <span>备份数据</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card weekly-report-card" id="weeklyReportCard">
+            <div class="card-title" style="justify-content: center; margin-bottom: 8px;">
+                <span>📔</span>
+                <span>本周回顾</span>
+            </div>
+            <div class="weekly-result" id="weeklyResult">—</div>
+            <div class="weekly-mvp" id="weeklyMvp">最佳表现日：—</div>
+
+            <div class="weekly-stats" id="weeklyStats"></div>
+
+            <div class="weekly-note" id="weeklyNote"></div>
+
+            <div class="share-section">
+                <button class="share-btn" id="weeklyShareBtn">
+                    <span>📷</span>
+                    <span>保存本周回顾</span>
+                </button>
+            </div>
+        </div>
+
+        <canvas id="shareCanvas" width="800" height="1000"></canvas>
+        <canvas id="weeklyCanvas" width="800" height="1100"></canvas>
+        <canvas id="jarCardCanvas" width="800" height="1100"></canvas>
+    </div>
+
+    <div class="jar-modal" id="jarModal">
+        <div class="jar-modal-card">
+            <div class="jar-modal-title" id="jarModalTitle">第 1 罐 · 满罐</div>
+            <div class="jar-modal-sub">三十颗胶囊落罐，封存纪念</div>
+            <img id="jarCardImg" alt="满罐纪念卡">
+            <div class="jar-modal-actions">
+                <button class="share-btn primary" id="jarCardSaveBtn">
+                    <span>📷</span>
+                    <span>保存纪念卡</span>
+                </button>
+                <button class="share-btn" id="jarModalCloseBtn">
+                    <span>继续攒下一罐</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const sliders = ['energy', 'mood', 'body', 'sleep', 'stress'];
+        const STORAGE_KEY = 'dailyEnergyRecords';
+        let currentMeal = 'good';
+        let currentRecovery = ['sleep', 'solitude'];
+
+        const recoveryOptions = [
+            { key: 'sleep', label: '睡觉', icon: '😴' },
+            { key: 'nap', label: '午休', icon: '😪' },
+            { key: 'solitude', label: '独处', icon: '🏠' },
+            { key: 'soccer', label: '看球', icon: '⚽' },
+            { key: 'walk', label: '散步', icon: '🚶' },
+            { key: 'book', label: '看书', icon: '📖' },
+            { key: 'phone', label: '刷手机', icon: '📱' },
+            { key: 'meal', label: '好好吃饭', icon: '🍜' },
+            { key: 'none', label: '还没有', icon: '🍃' }
+        ];
+
+        const mealMap = {
+            good:      { icon: '🍚', result: '今天好好吃了饭' },
+            casual:    { icon: '🍞', result: '今天随便对付了' },
+            skipped:   { icon: '⏳', result: '今天没顾上吃饭' },
+            'dine-in': { icon: '🍚', result: '今天好好吃了饭' },
+            'takeout': { icon: '🍞', result: '今天随便对付了' }
+        };
+
+        const mealHints = {
+            good: '好好吃饭也是恢复的一部分。',
+            casual: '对付一顿没关系，晚上留一顿热乎的。',
+            skipped: '没顾上吃饭的时候，至少备点饼干在手边。'
+        };
+
+        /* 天气 → 罐内 blob 的形状 / 颜色 / 表情 */
+        const jarMoods = {
+            '晴':       { color: '#F5A623', shape: 'circle', face: 'smile' },
+            '晴间多云': { color: '#D9C53D', shape: 'blob',   face: 'smile' },
+            '多云':     { color: '#93A5B8', shape: 'cloud',  face: 'flat' },
+            '阴':       { color: '#6E8199', shape: 'cloud',  face: 'flat' },
+            '小雨':     { color: '#4FA3E0', shape: 'drop',   face: 'sad' },
+            '雷雨':     { color: '#8A7FE0', shape: 'star',   face: 'angry' },
+            '雾':       { color: '#BCC6BB', shape: 'circle', face: 'dizzy' }
+        };
+
+        const dailyQuotes = [
+            { text: '頑張らなくていい', sub: '不用一直努力', desc: '今天也可以只是淡淡地度过', lang: 'jp' },
+            { text: 'マイペースで', sub: '按自己的节奏来', desc: '像自由人一样踢今天这场比赛', lang: 'jp' },
+            { text: '小休止', sub: '小憩一下', desc: '中场休息是为了下半场更好', lang: 'jp' },
+            { text: 'ゆっくりでいい', sub: '慢一点也没关系', desc: '案子再急，也可以先喝口水', lang: 'jp' },
+            { text: '今日は今日', sub: '今天是今天', desc: '明天的烦恼，明天再处理', lang: 'jp' },
+            { text: '試合は90分', sub: '比赛有90分钟', desc: '不是每一秒都要冲刺', lang: 'jp' },
+            { text: 'おやすみ', sub: '晚安', desc: '睡够六小时，也是高精力的一部分', lang: 'jp' },
+            { text: 'ひとりの時間', sub: '独处的时间', desc: '这是你最自然的充电方式', lang: 'jp' },
+            { text: '大丈夫', sub: '没关系', desc: '你已经处理过很多更难的局面', lang: 'jp' },
+            { text: 'いただきます', sub: '我开动了', desc: '好好吃饭，案子才有力气拆', lang: 'jp' },
+            { text: '無理しないで', sub: '别勉强', desc: '不是所有事情都需要今天解决', lang: 'jp' },
+            { text: '深呼吸', sub: '深呼吸', desc: '吸气四秒，呼气六秒，世界不会因此停下来', lang: 'jp' },
+            { text: '少即是多', sub: '', desc: '今天只处理一件事就够了', lang: 'zh' },
+            { text: '不必证明自己', sub: '', desc: '你已经够好了', lang: 'zh' },
+            { text: '喘口气', sub: '', desc: '比赛还没结束，但你值得暂停', lang: 'zh' },
+            { text: '安静也是力量', sub: '', desc: '不需要解释自己的充电方式', lang: 'zh' },
+            { text: '日子是一天一天过的', sub: '', desc: '不用急着把所有事情都做完', lang: 'zh' },
+            { text: '今天辛苦了', sub: '', desc: '无论如何，你撑过来了', lang: 'zh' },
+            { text: '好事多磨', sub: '', desc: '慢的案子往往拆得更干净', lang: 'zh' },
+            { text: '睡眠是最好的律师', sub: '', desc: '它替你整理了所有证据', lang: 'zh' },
+            { text: 'Rest is not idleness', sub: '休息不是虚度', desc: '这是蓄能，不是偷懒', lang: 'en' },
+            { text: 'Done is better than perfect', sub: '完成比完美重要', desc: '先交一版能用的', lang: 'en' },
+            { text: "You don't have to be okay", sub: '不需要一直好好的', desc: '只是"还在"就已经很好了', lang: 'en' },
+            { text: "Slow down, you're doing fine", sub: '慢一点，你做得很好', desc: '别人看起来的从容，都是慢慢来的', lang: 'en' },
+            { text: 'Not every day needs to be a win', sub: '不是每一天都要赢', desc: '平局也是积分', lang: 'en' },
+            { text: "It's okay to just exist today", sub: '今天只是存在着就好', desc: '不需要每天都很优秀', lang: 'en' },
+            { text: 'Small steps still move forward', sub: '小步子也是往前走', desc: '哪怕只推进了一点点', lang: 'en' },
+            { text: 'Protect your peace', sub: '守住你的平静', desc: '这比赢任何一场都重要', lang: 'en' }
+        ];
+
+        const weatherTypes = [
+            { icon: '☀️', title: '晴', desc: '能量在线，光落在水面上' },
+            { icon: '⛅', title: '多云', desc: '整体平稳，偶有波动' },
+            { icon: '☁️', title: '阴', desc: '有些沉闷，适合独处充电' },
+            { icon: '🌧️', title: '小雨', desc: '能量偏低，慢慢走也没关系' },
+            { icon: '⛈️', title: '雷雨', desc: '高压低能量，今天允许自己靠岸' },
+            { icon: '🌫️', title: '雾', desc: '身体有些朦胧，休息也是前进' },
+            { icon: '🌤️', title: '晴间多云', desc: '有压力也有余力，刚好' }
+        ];
+
+        const personas = [
+            { text: '高位逼抢型 — 全场奔跑，停不下来', condition: (d) => d.energy >= 7 && d.stress >= 7 },
+            { text: '控球型中场 — 稳稳推进，不疾不徐', condition: (d) => d.mood >= 5 && d.mood <= 7 && d.stress <= 6 },
+            { text: '摆大巴 — 先守住今天，不丢分就是胜利', condition: (d) => d.energy <= 4 && d.stress >= 6 },
+            { text: '伤停补时 — 需要换人下场休息', condition: (d) => d.body <= 4 },
+            { text: '单刀赴会 — 高精力低睡眠，撑完这场', condition: (d) => d.energy >= 7 && d.sleep <= 5 },
+            { text: '自由人 — 今天按自己的节奏踢', condition: (d) => d.mood >= 6 && d.stress <= 5 },
+            { text: '替补席 — 先歇着，看看局势', condition: (d) => true }
+        ];
+
+        const encourages = {
+            healthy: [
+                '状态不错，但高压工作下记得给自己留一点空白。',
+                '今天有余力，可以把最难的案子放在上午处理。',
+                '能量在线，但别忘了午睡 20 分钟会更稳。'
+            ],
+            tired: [
+                '今天有点累了，晚上可以早点睡，比赛回放明天也能看。',
+                '能量见底的时候，允许自己只完成最小版本。',
+                '独处和睡觉不是逃避，是你在给自己充电。'
+            ],
+            sick: [
+                '身体还在恢复，今天多喝温水，案子可以慢一点。',
+                '身体在提醒你该休息了，听它的。',
+                '恢复是慢慢来的事，不着急，给身体时间。'
+            ],
+            stressed: [
+                '案子很压人，但你已经处理过很多更难的局面。',
+                '高压的时候，先做 3 个深呼吸，再决定下一步。',
+                '再复杂的反垄断问题，也是一步步拆出来的。'
+            ],
+            flat: [
+                '淡淡的一天也很好，不需要每天都很有力气。',
+                '今天没有什么特别的，这本身就是一种状态。',
+                '不需要强迫自己更好，现在这样就够了。'
+            ],
+            goodMeal: [
+                '今天有好好吃饭，胃和状态都会感谢你。',
+                '一顿正经饭，是今天最小的胜利。'
+            ],
+            casualMeal: [
+                '对付一顿没关系，明天找机会吃顿热乎的。'
+            ],
+            skippedMeal: [
+                '没顾上吃饭的日子，身体在默默记账，明天补回来。'
+            ]
+        };
+
+        function init() {
+            const today = new Date();
+            document.getElementById('dateToday').textContent =
+                `${today.getFullYear()}年${today.getMonth()+1}月${today.getDate()}日 ${['日','一','二','三','四','五','六'][today.getDay()]}`;
+
+            sliders.forEach(id => {
+                const el = document.getElementById(id);
+                el.addEventListener('input', () => {
+                    document.getElementById(`val-${id}`).textContent = el.value;
+                });
+            });
+
+            document.getElementById('submitBtn').addEventListener('click', generateCard);
+            document.getElementById('shareBtn').addEventListener('click', generateShareCard);
+            document.getElementById('weeklyReportBtn').addEventListener('click', generateWeeklyReport);
+            document.getElementById('weeklyShareBtn').addEventListener('click', generateWeeklyShareCard);
+            document.getElementById('shareCodeBtn').addEventListener('click', copyShareCode);
+            document.getElementById('jarCardSaveBtn').addEventListener('click', () => {
+                const canvas = document.getElementById('jarCardCanvas');
+                const link = document.createElement('a');
+                link.download = `满罐纪念-${new Date().toISOString().split('T')[0]}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+            document.getElementById('jarModalCloseBtn').addEventListener('click', () => {
+                document.getElementById('jarModal').classList.remove('show');
+            });
+            document.getElementById('jarModal').addEventListener('click', e => {
+                if (e.target.id === 'jarModal') e.target.classList.remove('show');
+            });
+
+            setupMealButtons();
+            setupRecoveryButtons();
+
+            renderJar(false);
+            renderHistory();
+            renderDailyQuote();
+        }
+
+        function setupMealButtons() {
+            const container = document.getElementById('mealOptions');
+            const hint = document.getElementById('mealHint');
+            container.querySelectorAll('.meal-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    container.querySelectorAll('.meal-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentMeal = btn.dataset.meal;
+                    hint.textContent = mealHints[currentMeal] || '';
+                });
+            });
+        }
+
+        function setupRecoveryButtons() {
+            const container = document.getElementById('recoveryOptions');
+            const hint = document.getElementById('recoveryHint');
+
+            function sync() {
+                const selected = Array.from(container.querySelectorAll('.recovery-btn.active')).map(b => b.dataset.recovery);
+                currentRecovery = selected.length ? selected : ['none'];
+                const count = currentRecovery.filter(k => k !== 'none').length;
+                hint.textContent = count
+                    ? `今天选了 ${count} 种恢复方式，按自己的节奏来就好。`
+                    : '选今天实际做过的恢复方式，多选。';
+            }
+
+            container.querySelectorAll('.recovery-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const key = btn.dataset.recovery;
+                    if (key === 'none') {
+                        container.querySelectorAll('.recovery-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                    } else {
+                        container.querySelectorAll('.recovery-btn[data-recovery="none"]').forEach(b => b.classList.remove('active'));
+                        btn.classList.toggle('active');
+                        if (!container.querySelectorAll('.recovery-btn.active').length) {
+                            container.querySelector('.recovery-btn[data-recovery="none"]').classList.add('active');
+                        }
+                    }
+                    sync();
+                });
+            });
+
+            sync();
+        }
+
+        /* ========== 情绪储蓄罐 ========== */
+
+        function seededRand(seed) {
+            let s = (seed + 1) * 9301 + 49297;
+            return () => {
+                s = (s * 9301 + 49297) % 233280;
+                return s / 233280;
+            };
+        }
+
+        function easeOutBounce(t) {
+            const n1 = 7.5625, d1 = 2.75;
+            if (t < 1 / d1) return n1 * t * t;
+            if (t < 2 / d1) { t -= 1.5 / d1; return n1 * t * t + 0.75; }
+            if (t < 2.5 / d1) { t -= 2.25 / d1; return n1 * t * t + 0.9375; }
+            t -= 2.625 / d1; return n1 * t * t + 0.984375;
+        }
+
+        const JAR = { x: 150, y: 88, w: 340, h: 384, lidH: 26 };
+        const BLOB = { r: 28, perRow: 5, rowH: 48, colGap: 58, padX: 28, padBottom: 28 };
+        const JAR_SIZE = 30;
+        const JAR_CELEBRATED_KEY = 'dailyEnergyJarCelebrated';
+
+        function blobTarget(i) {
+            const row = Math.floor(i / BLOB.perRow);
+            const col = i % BLOB.perRow;
+            const rand = seededRand(i * 7 + 3);
+            const innerLeft = JAR.x + BLOB.padX;
+            const innerBottom = JAR.y + JAR.h - BLOB.padBottom;
+            const x = innerLeft + BLOB.r + col * BLOB.colGap + (rand() - 0.5) * 12;
+            const y = innerBottom - BLOB.r - row * BLOB.rowH + (rand() - 0.5) * 8;
+            const rot = (rand() - 0.5) * 0.5;
+            return { x, y, rot };
+        }
+
+        function shapePath(ctx, x, y, r, shape, rand) {
+            ctx.beginPath();
+            if (shape === 'circle' || shape === 'blob') {
+                const N = 16;
+                const wob = shape === 'circle' ? 0.05 : 0.16;
+                const pts = [];
+                for (let i = 0; i < N; i++) {
+                    const a = (i / N) * Math.PI * 2;
+                    const rr = r * (1 + (rand() - 0.5) * 2 * wob);
+                    pts.push([x + Math.cos(a) * rr, y + Math.sin(a) * rr]);
+                }
+                ctx.moveTo((pts[N - 1][0] + pts[0][0]) / 2, (pts[N - 1][1] + pts[0][1]) / 2);
+                for (let i = 0; i < N; i++) {
+                    const p = pts[i];
+                    const next = pts[(i + 1) % N];
+                    ctx.quadraticCurveTo(p[0], p[1], (p[0] + next[0]) / 2, (p[1] + next[1]) / 2);
+                }
+                ctx.closePath();
+            } else if (shape === 'drop') {
+                ctx.moveTo(x, y - r * 1.15);
+                ctx.bezierCurveTo(x + r * 0.95, y - r * 0.05, x + r * 0.85, y + r * 0.85, x, y + r * 0.9);
+                ctx.bezierCurveTo(x - r * 0.85, y + r * 0.85, x - r * 0.95, y - r * 0.05, x, y - r * 1.15);
+                ctx.closePath();
+            } else if (shape === 'star') {
+                const spikes = 7;
+                for (let i = 0; i < spikes * 2; i++) {
+                    const rr = (i % 2 === 0 ? r * 1.05 : r * 0.52) * (1 + (rand() - 0.5) * 0.12);
+                    const a = (i * Math.PI / spikes) - Math.PI / 2;
+                    const px = x + Math.cos(a) * rr;
+                    const py = y + Math.sin(a) * rr;
+                    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                }
+                ctx.closePath();
+            } else if (shape === 'cloud') {
+                const by = y + r * 0.45;
+                ctx.moveTo(x - r * 0.9, by);
+                ctx.arc(x - r * 0.58, by, r * 0.32, Math.PI, Math.PI * 2, false);
+                ctx.arc(x + r * 0.04, by, r * 0.30, Math.PI, Math.PI * 2, false);
+                ctx.arc(x + r * 0.58, by, r * 0.24, Math.PI, Math.PI * 2, false);
+                ctx.closePath();
+            }
+        }
+
+        function drawFace(ctx, x, y, r, face) {
+            const c = 'rgba(43, 59, 76, 0.78)';
+            ctx.fillStyle = c;
+            ctx.strokeStyle = c;
+            ctx.lineWidth = Math.max(1.8, r * 0.07);
+            ctx.lineCap = 'round';
+
+            const eyeY = y - r * 0.12;
+            const dx = r * 0.32;
+            const er = r * 0.075;
+
+            if (face === 'dizzy') {
+                [x - dx, x + dx].forEach(ex => {
+                    ctx.beginPath();
+                    ctx.moveTo(ex - er * 1.4, eyeY - er * 1.4);
+                    ctx.lineTo(ex + er * 1.4, eyeY + er * 1.4);
+                    ctx.moveTo(ex + er * 1.4, eyeY - er * 1.4);
+                    ctx.lineTo(ex - er * 1.4, eyeY + er * 1.4);
+                    ctx.stroke();
+                });
+            } else {
+                ctx.beginPath();
+                ctx.arc(x - dx, eyeY, er, 0, Math.PI * 2);
+                ctx.arc(x + dx, eyeY, er, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            if (face === 'angry') {
+                ctx.beginPath();
+                ctx.moveTo(x - dx - er * 1.8, eyeY - er * 3);
+                ctx.lineTo(x - dx + er * 1.4, eyeY - er * 1);
+                ctx.moveTo(x + dx + er * 1.8, eyeY - er * 3);
+                ctx.lineTo(x + dx - er * 1.4, eyeY - er * 1);
+                ctx.stroke();
+            }
+
+            ctx.beginPath();
+            if (face === 'smile') {
+                ctx.arc(x, y + r * 0.06, r * 0.26, 0.18 * Math.PI, 0.82 * Math.PI);
+            } else if (face === 'sad') {
+                ctx.arc(x, y + r * 0.44, r * 0.22, 1.15 * Math.PI, 1.85 * Math.PI);
+            } else if (face === 'flat') {
+                ctx.moveTo(x - r * 0.18, y + r * 0.24);
+                ctx.lineTo(x + r * 0.18, y + r * 0.24);
+            } else if (face === 'angry') {
+                ctx.arc(x, y + r * 0.5, r * 0.2, 1.2 * Math.PI, 1.8 * Math.PI);
+            } else if (face === 'dizzy') {
+                ctx.moveTo(x - r * 0.2, y + r * 0.26);
+                ctx.quadraticCurveTo(x - r * 0.1, y + r * 0.18, x, y + r * 0.26);
+                ctx.quadraticCurveTo(x + r * 0.1, y + r * 0.34, x + r * 0.2, y + r * 0.26);
+            }
+            ctx.stroke();
+        }
+
+        function drawBlob(ctx, x, y, rot, mood, seed) {
+            const rand = seededRand(seed);
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(rot);
+
+            ctx.shadowColor = mood.color;
+            ctx.shadowBlur = 14;
+            shapePath(ctx, 0, 0, BLOB.r, mood.shape, rand);
+            ctx.fillStyle = mood.color;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            ctx.strokeStyle = 'rgba(46, 74, 102, 0.15)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.beginPath();
+            ctx.ellipse(-BLOB.r * 0.3, -BLOB.r * 0.38, BLOB.r * 0.2, BLOB.r * 0.1, -0.6, 0, Math.PI * 2);
+            ctx.fill();
+
+            drawFace(ctx, 0, 0, BLOB.r, mood.face);
+            ctx.restore();
+        }
+
+        function drawJarShell(ctx) {
+            const { x, y, w, h } = JAR;
+            const br = 30;
+
+            ctx.fillStyle = 'rgba(82, 137, 198, 0.05)';
+            ctx.strokeStyle = 'rgba(82, 137, 198, 0.4)';
+            ctx.lineWidth = 2.5;
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+            ctx.moveTo(x, y + 16);
+            ctx.lineTo(x, y + h - br);
+            ctx.quadraticCurveTo(x, y + h, x + br, y + h);
+            ctx.lineTo(x + w - br, y + h);
+            ctx.quadraticCurveTo(x + w, y + h, x + w, y + h - br);
+            ctx.lineTo(x + w, y + 16);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#5289C6';
+            ctx.beginPath();
+            ctx.roundRect(x - 14, y - 22, w + 28, JAR.lidH, 8);
+            ctx.fill();
+            ctx.fillStyle = 'rgba(62, 107, 151, 0.25)';
+            ctx.beginPath();
+            ctx.roundRect(x - 14, y - 22, w + 28, 7, 8);
+            ctx.fill();
+
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+            ctx.lineWidth = 5;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(x + 28, y + 54);
+            ctx.quadraticCurveTo(x + 18, y + h * 0.5, x + 32, y + h - 70);
+            ctx.stroke();
+        }
+
+        function drawJarScene(ctx, items, dropIdx, dropY) {
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            items.forEach((rec, i) => {
+                const mood = jarMoods[rec.weather] || jarMoods['多云'];
+                const t = blobTarget(i);
+                const y = (i === dropIdx) ? dropY : t.y;
+                drawBlob(ctx, t.x, y, t.rot, mood, i * 13 + 5);
+            });
+            drawJarShell(ctx);
+        }
+
+        function renderJar(dropLatest) {
+            const canvas = document.getElementById('jarCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const records = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            const jarIndex = records.length ? Math.floor((records.length - 1) / JAR_SIZE) : 0;
+            const items = records.slice(jarIndex * JAR_SIZE, jarIndex * JAR_SIZE + JAR_SIZE);
+
+            const countEl = document.getElementById('jarCount');
+            countEl.textContent = !records.length
+                ? '还空着，今天打卡后第一颗会落进来'
+                : items.length === JAR_SIZE
+                    ? `第 ${jarIndex + 1} 罐 · 满罐啦，下次打卡开启第 ${jarIndex + 2} 罐`
+                    : `第 ${jarIndex + 1} 罐 · 已收集 ${items.length} 颗 · 装满 ${JAR_SIZE} 颗就是满罐`;
+
+            const justFilled = dropLatest
+                && records.length > 0
+                && records.length % JAR_SIZE === 0
+                && localStorage.getItem(JAR_CELEBRATED_KEY) !== String(records.length);
+
+            if (dropLatest && items.length) {
+                animateJarDrop(ctx, items, items.length - 1, () => {
+                    if (justFilled) {
+                        localStorage.setItem(JAR_CELEBRATED_KEY, String(records.length));
+                        celebrateJarFull(ctx, items, jarIndex + 1, records.slice(-JAR_SIZE));
+                    }
+                });
+            } else {
+                drawJarScene(ctx, items, -1, 0);
+            }
+        }
+
+        function animateJarDrop(ctx, items, idx, onDone) {
+            const target = blobTarget(idx);
+            const startY = JAR.y - 80;
+            const dur = 750;
+            const start = performance.now();
+
+            function frame(now) {
+                const p = Math.min(1, (now - start) / dur);
+                const y = startY + (target.y - startY) * easeOutBounce(p);
+                drawJarScene(ctx, items, idx, y);
+                if (p < 1) requestAnimationFrame(frame);
+                else if (onDone) onDone();
+            }
+            requestAnimationFrame(frame);
+        }
+
+        /* 满罐庆祝：罐口喷出星火，然后弹出纪念卡 */
+        function celebrateJarFull(ctx, items, jarNo, jarRecords) {
+            const sparks = [];
+            const cx = JAR.x + JAR.w / 2;
+            const top = JAR.y + 6;
+            for (let i = 0; i < 46; i++) {
+                const a = -Math.PI / 2 + (Math.random() - 0.5) * 1.7;
+                const sp = 2.5 + Math.random() * 4.5;
+                sparks.push({
+                    x: cx + (Math.random() - 0.5) * 60,
+                    y: top,
+                    vx: Math.cos(a) * sp,
+                    vy: Math.sin(a) * sp,
+                    r: 1.5 + Math.random() * 2.8,
+                    life: 1,
+                    decay: 0.011 + Math.random() * 0.014,
+                    color: Math.random() < 0.55 ? '#F5A623' : (Math.random() < 0.5 ? '#5289C6' : '#8A7FE0')
+                });
+            }
+            const start = performance.now();
+            const dur = 1600;
+
+            function frame(now) {
+                const p = Math.min(1, (now - start) / dur);
+                drawJarScene(ctx, items, -1, 0);
+
+                const glow = ctx.createRadialGradient(cx, top, 4, cx, top, 130);
+                glow.addColorStop(0, `rgba(245, 166, 35, ${0.5 * (1 - p)})`);
+                glow.addColorStop(1, 'rgba(245, 166, 35, 0)');
+                ctx.fillStyle = glow;
+                ctx.fillRect(cx - 130, top - 130, 260, 260);
+
+                sparks.forEach(s => {
+                    if (s.life <= 0) return;
+                    s.x += s.vx;
+                    s.y += s.vy;
+                    s.vy += 0.07;
+                    s.life -= s.decay;
+                    ctx.globalAlpha = Math.max(0, s.life);
+                    ctx.fillStyle = s.color;
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+                ctx.globalAlpha = 1;
+
+                if (p < 1) {
+                    requestAnimationFrame(frame);
+                } else {
+                    drawJarScene(ctx, items, -1, 0);
+                    showJarCardModal(jarNo, jarRecords);
+                }
+            }
+            requestAnimationFrame(frame);
+        }
+
+        function generateJarCard(jarNo, jarRecords) {
+            const canvas = document.getElementById('jarCardCanvas');
+            const ctx = canvas.getContext('2d');
+            const W = canvas.width, H = canvas.height;
+
+            ctx.fillStyle = '#F4F7FA';
+            ctx.fillRect(0, 0, W, H);
+
+            ctx.strokeStyle = 'rgba(82, 137, 198, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(40, 40, W - 80, H - 80);
+
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#2B3B4C';
+            ctx.font = '600 36px "Songti SC", "Noto Serif SC", "SimSun", serif';
+            ctx.fillText(`满罐纪念 · 第 ${jarNo} 罐`, W / 2, 118);
+
+            ctx.font = '13px sans-serif';
+            ctx.fillStyle = '#6B7A89';
+            ctx.fillText(`JAR NO.${jarNo} · FULL OF FEELINGS`, W / 2, 150);
+
+            const startDate = jarRecords[0].date.slice(5).replace('-', '/');
+            const endDate = jarRecords[jarRecords.length - 1].date.slice(5).replace('-', '/');
+            ctx.font = '15px sans-serif';
+            ctx.fillStyle = '#5289C6';
+            ctx.fillText(`${startDate} — ${endDate} · 共 ${jarRecords.length} 颗`, W / 2, 190);
+
+            /* 30 颗小胶囊：6 列 × 5 行 */
+            const cols = 6, rows = 5, r = 30;
+            const gridW = cols * 2 * r + (cols - 1) * 34;
+            const ox = (W - gridW) / 2 + r;
+            const oy = 268;
+            jarRecords.forEach((rec, i) => {
+                const mood = jarMoods[rec.weather] || jarMoods['多云'];
+                const col = i % cols, row = Math.floor(i / cols);
+                const x = ox + col * (2 * r + 34);
+                const y = oy + row * (2 * r + 30);
+
+                ctx.save();
+                ctx.shadowColor = mood.color;
+                ctx.shadowBlur = 12;
+                ctx.fillStyle = mood.color;
+                ctx.beginPath();
+                ctx.arc(x, y, r, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+                ctx.strokeStyle = 'rgba(46, 74, 102, 0.15)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(x, y, r, 0, Math.PI * 2);
+                ctx.stroke();
+
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.beginPath();
+                ctx.ellipse(x - r * 0.3, y - r * 0.38, r * 0.2, r * 0.1, -0.6, 0, Math.PI * 2);
+                ctx.fill();
+
+                drawFace(ctx, x, y, r, mood.face);
+            });
+
+            const gridBottom = oy + (rows - 1) * (2 * r + 30) + r;
+
+            const avgScore = (jarRecords.reduce((s, x) => s + x.avg, 0) / jarRecords.length).toFixed(1);
+            const mvp = jarRecords.reduce((b, x) => x.avg > b.avg ? x : b, jarRecords[0]);
+            const sunnyDays = jarRecords.filter(x => x.weather === '晴' || x.weather === '晴间多云').length;
+            const rainyDays = jarRecords.filter(x => x.weather === '小雨' || x.weather === '雷雨').length;
+
+            ctx.font = '18px "PingFang SC", "Microsoft YaHei", sans-serif';
+            ctx.fillStyle = '#2B3B4C';
+            ctx.fillText(`平均能量 ${avgScore} 分 · 放晴 ${sunnyDays} 天 · 落雨 ${rainyDays} 天`, W / 2, gridBottom + 78);
+
+            ctx.font = '15px "PingFang SC", "Microsoft YaHei", sans-serif';
+            ctx.fillStyle = '#6B7A89';
+            ctx.fillText(`最亮的一天：${mvp.date.slice(5).replace('-', '/')}（${mvp.weather}，${mvp.avg} 分）`, W / 2, gridBottom + 112);
+
+            ctx.font = '17px "Songti SC", "Noto Serif SC", "SimSun", serif';
+            ctx.fillStyle = '#3E6B97';
+            ctx.fillText('攒星星的人，自己也成了光', W / 2, gridBottom + 178);
+
+            ctx.font = '13px sans-serif';
+            ctx.fillStyle = '#6B7A89';
+            ctx.fillText('这一罐封存，下一罐见', W / 2, gridBottom + 210);
+
+            ctx.font = '13px sans-serif';
+            ctx.fillStyle = 'rgba(107, 122, 137, 0.75)';
+            ctx.fillText('今日気分 · 许律状态观测站', W / 2, H - 72);
+
+            return canvas;
+        }
+
+        function showJarCardModal(jarNo, jarRecords) {
+            const canvas = generateJarCard(jarNo, jarRecords);
+            document.getElementById('jarModalTitle').textContent = `第 ${jarNo} 罐 · 满罐`;
+            document.getElementById('jarCardImg').src = canvas.toDataURL('image/png');
+            document.getElementById('jarModal').classList.add('show');
+        }
+
+        /* ========== 分享卡 ========== */
+
+        function generateShareCard() {
+            const canvas = document.getElementById('shareCanvas');
+            const ctx = canvas.getContext('2d');
+            const d = getData();
+            const weather = determineWeather(d);
+            const persona = determinePersona(d);
+            const encourage = determineEncourage(d);
+            const dateStr = document.getElementById('dateToday').textContent;
+
+            drawLandscape(ctx, canvas.width, canvas.height, weather.title);
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.72)';
+            ctx.beginPath();
+            ctx.roundRect(60, 60, canvas.width - 120, 340, 20);
+            ctx.fill();
+
+            ctx.fillStyle = '#2B3B4C';
+            ctx.font = '600 36px "Songti SC", "Noto Serif SC", "SimSun", serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('今日気分', canvas.width / 2, 122);
+
+            ctx.font = '13px sans-serif';
+            ctx.fillStyle = '#6B7A89';
+            ctx.fillText('PERSONAL ENERGY WEATHER', canvas.width / 2, 152);
+
+            ctx.font = '16px sans-serif';
+            ctx.fillText(dateStr, canvas.width / 2, 186);
+
+            ctx.font = '76px sans-serif';
+            ctx.fillText(weather.icon, canvas.width / 2, 268);
+
+            ctx.font = '600 32px "Songti SC", "Noto Serif SC", "SimSun", serif';
+            ctx.fillStyle = '#2B3B4C';
+            ctx.fillText(weather.title, canvas.width / 2, 320);
+
+            ctx.font = '17px sans-serif';
+            ctx.fillStyle = '#6B7A89';
+            ctx.fillText(weather.desc, canvas.width / 2, 354);
+
+            const metrics = [
+                { label: '能量', value: d.energy },
+                { label: '心情', value: d.mood },
+                { label: '身体', value: d.body },
+                { label: '睡眠', value: d.sleep },
+                { label: '案压', value: d.stress }
+            ];
+
+            let y = 440;
+            ctx.textAlign = 'left';
+            metrics.forEach((m, i) => {
+                ctx.font = '16px sans-serif';
+                ctx.fillStyle = '#2B3B4C';
+                ctx.fillText(m.label, 100, y);
+
+                ctx.fillStyle = 'rgba(46, 74, 102, 0.12)';
+                ctx.fillRect(160, y - 13, 500, 11);
+
+                const colors = ['#F5A623', '#D9C53D', '#5FA87C', '#4FA3E0', '#8A7FE0'];
+                ctx.fillStyle = colors[i];
+                ctx.fillRect(160, y - 13, 500 * (m.value / 10), 11);
+
+                ctx.font = '16px sans-serif';
+                ctx.fillStyle = '#3E6B97';
+                ctx.textAlign = 'right';
+                ctx.fillText(m.value, 690, y);
+                ctx.textAlign = 'left';
+
+                y += 42;
+            });
+
+            ctx.font = '16px sans-serif';
+            ctx.fillStyle = '#6B7A89';
+            ctx.textAlign = 'center';
+            ctx.fillText(`⚽ 今日球风：${persona}`, canvas.width / 2, y + 20);
+
+            const meal = mealMap[d.meal] || mealMap.casual;
+            ctx.fillStyle = '#8C7B54';
+            ctx.fillText(`${meal.icon} ${meal.result}`, canvas.width / 2, y + 52);
+
+            const activeRecoveries = (d.recovery || []).filter(k => k !== 'none');
+            if (activeRecoveries.length) {
+                const recoveryText = activeRecoveries.map(key => {
+                    const opt = recoveryOptions.find(o => o.key === key) || { icon: '✨', label: key };
+                    return `${opt.icon} ${opt.label}`;
+                }).join('  ');
+                ctx.font = '16px sans-serif';
+                ctx.fillStyle = '#5FA87C';
+                ctx.fillText(recoveryText, canvas.width / 2, y + 86);
+            }
+
+            const boxY = y + 108;
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+            ctx.beginPath();
+            ctx.roundRect(80, boxY, canvas.width - 160, 120, 16);
+            ctx.fill();
+            ctx.fillStyle = '#5289C6';
+            ctx.fillRect(80, boxY, 4, 120);
+
+            ctx.font = '18px "PingFang SC", "Microsoft YaHei", sans-serif';
+            ctx.fillStyle = '#2B3B4C';
+            wrapText(ctx, encourage, canvas.width / 2, boxY + 50, canvas.width - 200, 30);
+
+            ctx.font = '13px sans-serif';
+            ctx.fillStyle = '#6B7A89';
+            ctx.fillText('今日気分 · 许律状态观测站', canvas.width / 2, canvas.height - 70);
+
+            const link = document.createElement('a');
+            link.download = `今日気分-${new Date().toISOString().split('T')[0]}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function drawLandscape(ctx, w, h, weatherTitle) {
+            const palettes = {
+                '晴': { sky: ['#BEE3F8', '#E8F4FB'], hill: ['#7FB3D8', '#A8CFE8'], water: '#9CCBE8', sun: true },
+                '晴间多云': { sky: ['#B4D6EC', '#E2EFF8'], hill: ['#74A8CE', '#9FC6E2'], water: '#8FC0E4', sun: true },
+                '多云': { sky: ['#C3CFDA', '#E8EDF2'], hill: ['#93A5B6', '#B4C2CE'], water: '#A8BAC8', sun: false },
+                '阴': { sky: ['#B9C2CC', '#DDE3E9'], hill: ['#8494A2', '#A5B1BC'], water: '#9DAAB6', sun: false },
+                '小雨': { sky: ['#A9C4DA', '#D6E6F2'], hill: ['#6E97B8', '#96BAD4'], water: '#7FA8CC', sun: false },
+                '雷雨': { sky: ['#7E8BA6', '#B4BDCF'], hill: ['#4E5A74', '#6E7A94'], water: '#5E6E8A', sun: false },
+                '雾': { sky: ['#D5DAD9', '#EBEEED'], hill: ['#A8B2AF', '#C4CBC8'], water: '#C0C8C5', sun: false }
+            };
+
+            const p = palettes[weatherTitle] || palettes['晴'];
+
+            const grad = ctx.createLinearGradient(0, 0, 0, h * 0.6);
+            grad.addColorStop(0, p.sky[0]);
+            grad.addColorStop(1, p.sky[1]);
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, w, h);
+
+            if (p.sun) {
+                ctx.save();
+                ctx.fillStyle = 'rgba(245, 166, 35, 0.18)';
+                ctx.beginPath();
+                ctx.arc(w * 0.75, h * 0.18, 92, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = 'rgba(245, 166, 35, 0.5)';
+                ctx.beginPath();
+                ctx.arc(w * 0.75, h * 0.18, 46, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = 'rgba(255, 209, 122, 0.95)';
+                ctx.beginPath();
+                ctx.arc(w * 0.75, h * 0.18, 38, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            ctx.fillStyle = p.hill[1];
+            ctx.beginPath();
+            ctx.moveTo(0, h * 0.55);
+            ctx.bezierCurveTo(w * 0.25, h * 0.42, w * 0.55, h * 0.62, w, h * 0.48);
+            ctx.lineTo(w, h);
+            ctx.lineTo(0, h);
+            ctx.fill();
+
+            ctx.fillStyle = p.hill[0];
+            ctx.beginPath();
+            ctx.moveTo(0, h * 0.7);
+            ctx.bezierCurveTo(w * 0.3, h * 0.58, w * 0.7, h * 0.75, w, h * 0.62);
+            ctx.lineTo(w, h);
+            ctx.lineTo(0, h);
+            ctx.fill();
+
+            ctx.fillStyle = p.water;
+            ctx.globalAlpha = 0.4;
+            ctx.beginPath();
+            ctx.ellipse(w / 2, h * 0.85, w * 0.55, h * 0.12, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+
+            if (p.sun) {
+                ctx.save();
+                ctx.strokeStyle = 'rgba(245, 166, 35, 0.35)';
+                ctx.lineWidth = 3;
+                for (let i = 0; i < 5; i++) {
+                    const ly = h * 0.78 + i * 16;
+                    const lw = 30 + Math.random() * 40;
+                    ctx.beginPath();
+                    ctx.moveTo(w * 0.75 - lw, ly);
+                    ctx.lineTo(w * 0.75 + lw, ly);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+
+            if (weatherTitle === '小雨' || weatherTitle === '雷雨') {
+                ctx.strokeStyle = 'rgba(62, 107, 151, 0.3)';
+                ctx.lineWidth = 2;
+                for (let i = 0; i < 60; i++) {
+                    const x = Math.random() * w;
+                    const ry = Math.random() * h * 0.7;
+                    ctx.beginPath();
+                    ctx.moveTo(x, ry);
+                    ctx.lineTo(x - 8, ry + 22);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+            const chars = text.split('');
+            let line = '';
+            let testLine = '';
+            ctx.textAlign = 'center';
+
+            for (let n = 0; n < chars.length; n++) {
+                testLine += chars[n];
+                const metrics = ctx.measureText(testLine);
+                if (metrics.width > maxWidth && n > 0) {
+                    ctx.fillText(line, x, y);
+                    line = chars[n];
+                    testLine = chars[n];
+                    y += lineHeight;
+                } else {
+                    line = testLine;
+                }
+            }
+            ctx.fillText(line, x, y);
+        }
+
+        /* ========== 核心逻辑 ========== */
+
+        function renderDailyQuote() {
+            const today = new Date().toDateString();
+            const seed = today.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+            const quote = dailyQuotes[seed % dailyQuotes.length];
+            const textEl = document.getElementById('quoteJp');
+            const subEl = document.getElementById('quoteCn');
+            textEl.textContent = quote.text;
+            textEl.className = 'quote-jp' + (quote.lang === 'en' ? ' quote-en' : '');
+            if (quote.sub) {
+                subEl.textContent = quote.sub;
+                subEl.style.display = '';
+            } else {
+                subEl.style.display = 'none';
+            }
+            document.getElementById('quoteDesc').textContent = quote.desc;
+        }
+
+        function getData() {
+            return {
+                energy: parseInt(document.getElementById('energy').value),
+                mood: parseInt(document.getElementById('mood').value),
+                body: parseInt(document.getElementById('body').value),
+                sleep: parseInt(document.getElementById('sleep').value),
+                stress: parseInt(document.getElementById('stress').value),
+                note: document.getElementById('note').value.trim(),
+                meal: currentMeal,
+                recovery: currentRecovery
+            };
+        }
+
+        function determineWeather(d) {
+            const avg = (d.energy + d.mood + d.body) / 3;
+
+            if (d.body <= 3) return weatherTypes[5];
+            if (d.energy <= 3 && d.stress >= 7) return weatherTypes[4];
+            if (d.energy <= 4 && d.mood <= 4) return weatherTypes[3];
+            if (avg >= 6.3 && d.stress <= 6) return weatherTypes[0];
+            if (avg >= 5.5 && d.stress <= 7) return weatherTypes[6];
+            if (avg < 4.6 || (avg < 5.1 && d.stress >= 6)) return weatherTypes[2];
+            return weatherTypes[1];
+        }
+
+        function determinePersona(d) {
+            for (let p of personas) {
+                if (p.condition(d)) return p.text;
+            }
+            return personas[personas.length - 1].text;
+        }
+
+        function determineEncourage(d) {
+            let text = '';
+            if (d.body <= 4) text = randomOne(encourages.sick);
+            else if (d.stress >= 8) text = randomOne(encourages.stressed);
+            else if (d.energy <= 4 || d.sleep <= 4) text = randomOne(encourages.tired);
+            else if (d.mood >= 5 && d.mood <= 7 && d.stress <= 6) text = randomOne(encourages.flat);
+            else text = randomOne(encourages.healthy);
+
+            if (d.meal === 'good') text += ' ' + randomOne(encourages.goodMeal);
+            else if (d.meal === 'casual') text += ' ' + randomOne(encourages.casualMeal);
+            else text += ' ' + randomOne(encourages.skippedMeal);
+            return text;
+        }
+
+        function randomOne(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        function formatLocalDate(date = new Date()) {
+            const d = new Date(date);
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+
+        function calculateStreak() {
+            const records = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            if (records.length === 0) return 0;
+
+            const dates = new Set(records.map(r => r.date));
+            const today = formatLocalDate();
+
+            let streak = 0;
+            for (let i = 0; i <= 30; i++) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const key = formatLocalDate(d);
+                if (dates.has(key)) {
+                    streak++;
+                } else if (key === today) {
+                    continue;
+                } else {
+                    break;
+                }
+            }
+            return streak;
+        }
+
+        function streakLabel(streak) {
+            if (streak >= 30) return { icon: '🏆', text: '连续记录 30 天+，罐子又满了一轮' };
+            if (streak >= 14) return { icon: '⭐', text: `连续记录 ${streak} 天，主力首发` };
+            if (streak >= 7) return { icon: '🔥', text: `连续记录 ${streak} 天，状态正热` };
+            if (streak >= 3) return { icon: '⚡', text: `连续记录 ${streak} 天，连场出战` };
+            return { icon: '🌱', text: `连续记录 ${streak} 天，赛季起步` };
+        }
+
+        function renderStreak() {
+            const streak = calculateStreak();
+            const badge = document.getElementById('streakBadge');
+            if (streak <= 0) {
+                badge.style.display = 'none';
+                return;
+            }
+            const label = streakLabel(streak);
+            badge.querySelector('.badge-icon').textContent = label.icon;
+            document.getElementById('streakText').textContent = label.text;
+            badge.style.display = 'inline-flex';
+        }
+
+        function generateCard() {
+            const d = getData();
+            const weather = determineWeather(d);
+            const persona = determinePersona(d);
+            const encourage = determineEncourage(d);
+
+            document.getElementById('weatherIcon').textContent = weather.icon;
+            document.getElementById('weatherTitle').textContent = weather.title;
+            document.getElementById('weatherDesc').textContent = weather.desc;
+            document.getElementById('personaText').textContent = `今日球风：${persona}`;
+            document.getElementById('encourageText').textContent = encourage;
+
+            const mealEl = document.getElementById('mealResult');
+            const meal = mealMap[d.meal] || mealMap.casual;
+            mealEl.innerHTML = `<span>${meal.icon}</span><span>${meal.result}</span>`;
+            mealEl.style.display = 'inline-flex';
+
+            const recoveryTags = document.getElementById('recoveryTags');
+            const activeRecoveries = (d.recovery || []).filter(k => k !== 'none');
+            if (activeRecoveries.length) {
+                recoveryTags.innerHTML = activeRecoveries.map(key => {
+                    const opt = recoveryOptions.find(o => o.key === key) || { icon: '✨', label: key };
+                    return `<span class="recovery-tag"><span>${opt.icon}</span><span>${opt.label}</span></span>`;
+                }).join('');
+                recoveryTags.style.display = 'flex';
+            } else {
+                recoveryTags.style.display = 'none';
+            }
+
+            saveRecord(d, weather);
+            renderJar(true);
+            renderHistory();
+            renderStreak();
+
+            const resultCard = document.getElementById('resultCard');
+            resultCard.classList.add('show');
+            setTimeout(() => {
+                resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 700);
+        }
+
+        function saveRecord(d, weather) {
+            let records = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            const today = formatLocalDate();
+
+            records = records.filter(r => r.date !== today);
+            records.push({
+                date: today,
+                ...d,
+                weather: weather.title,
+                icon: weather.icon,
+                avg: Math.round((d.energy + d.mood + d.body + d.sleep - d.stress + 10) / 5)
+            });
+
+            records.sort((a, b) => a.date.localeCompare(b.date));
+            if (records.length > 365) records = records.slice(-365);
+
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+        }
+
+        function esc(s) {
+            const div = document.createElement('div');
+            div.textContent = s;
+            return div.innerHTML;
+        }
+
+        function renderHistory() {
+            const records = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            const last7 = records.slice(-7);
+
+            const chartEl = document.getElementById('trendChart');
+            const listEl = document.getElementById('historyList');
+
+            if (last7.length === 0) {
+                chartEl.innerHTML = '';
+                listEl.innerHTML = '<div class="empty-state">还没有记录，填写今天的状态后会出现在这里。</div>';
+                return;
+            }
+
+            const maxScore = Math.max(...last7.map(r => r.avg), 1);
+            chartEl.innerHTML = last7.map(r => {
+                const height = Math.max(4, (r.avg / maxScore) * 90);
+                const label = r.date.slice(5).replace('-', '/');
+                return `<div class="chart-bar" style="height: ${height}%">
+                    <div class="chart-bar-label">${label}</div>
+                </div>`;
+            }).join('');
+
+            listEl.innerHTML = last7.slice().reverse().map(r => {
+                const date = r.date.slice(5).replace('-', '/');
+                const mealTag = (mealMap[r.meal] || mealMap.casual).icon;
+                const recoveryTags = (r.recovery || []).filter(k => k !== 'none').map(key => {
+                    const opt = recoveryOptions.find(o => o.key === key) || { icon: '✨', label: key };
+                    return `<span style="margin-left:4px;">${opt.icon}</span>`;
+                }).join('');
+                const noteRow = r.note ? `<div class="history-note">「${esc(r.note)}」</div>` : '';
+                return `<div class="history-item">
+                    <div class="history-main">
+                        <div class="history-date">${date}</div>
+                        <div class="history-weather">${r.icon} ${r.weather} <span style="margin-left:4px;">${mealTag}</span>${recoveryTags}</div>
+                        <div class="history-score">${r.avg}分</div>
+                    </div>
+                    ${noteRow}
+                </div>`;
+            }).join('');
+        }
+
+        function isGoodMeal(meal) {
+            return meal === 'good' || meal === 'dine-in';
+        }
+
+        function generateWeeklyReport() {
+            const records = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            const weekRecords = records.slice(-7);
+            const card = document.getElementById('weeklyReportCard');
+            const resultEl = document.getElementById('weeklyResult');
+            const mvpEl = document.getElementById('weeklyMvp');
+            const statsEl = document.getElementById('weeklyStats');
+            const noteEl = document.getElementById('weeklyNote');
+
+            if (weekRecords.length === 0) {
+                resultEl.textContent = '暂无数据';
+                resultEl.className = 'weekly-result';
+                mvpEl.textContent = '最佳表现日：—';
+                statsEl.innerHTML = '';
+                noteEl.innerHTML = '<p>本周还没有记录，点击「收下今日天气」开始记录吧。</p>';
+                card.classList.add('show');
+                card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                return;
+            }
+
+            const avg = key => (weekRecords.reduce((s, r) => s + r[key], 0) / weekRecords.length).toFixed(1);
+            const avgEnergy = avg('energy');
+            const avgMood = avg('mood');
+            const avgBody = avg('body');
+            const avgSleep = avg('sleep');
+            const avgStress = avg('stress');
+            const avgScore = (weekRecords.reduce((s, r) => s + r.avg, 0) / weekRecords.length).toFixed(1);
+            const goodMealDays = weekRecords.filter(r => isGoodMeal(r.meal)).length;
+            const recoveryDays = weekRecords.filter(r => (r.recovery || []).some(k => k !== 'none')).length;
+
+            let resultText, resultClass, resultDesc;
+            if (avgScore >= 6.2) {
+                resultText = '顺';
+                resultClass = 'win';
+                resultDesc = '本周整体在线，状态不错';
+            } else if (avgScore >= 4.6) {
+                resultText = '稳';
+                resultClass = 'draw';
+                resultDesc = '本周起起伏伏，算是稳住了';
+            } else {
+                resultText = '缓';
+                resultClass = 'lose';
+                resultDesc = '本周能量偏低，下周慢慢恢复';
+            }
+
+            const mvp = weekRecords.reduce((best, r) => r.avg > best.avg ? r : best, weekRecords[0]);
+            const mvpDate = mvp.date.slice(5).replace('-', '/');
+
+            resultEl.textContent = resultText;
+            resultEl.className = 'weekly-result ' + resultClass;
+            mvpEl.textContent = `最佳表现日：${mvpDate} ${mvp.icon} ${mvp.avg}分`;
+
+            statsEl.innerHTML = [
+                { label: '综合得分', value: avgScore },
+                { label: '平均能量', value: avgEnergy },
+                { label: '平均心情', value: avgMood },
+                { label: '平均身体', value: avgBody },
+                { label: '平均睡眠', value: avgSleep },
+                { label: '平均案压', value: avgStress },
+                { label: '好好吃饭', value: goodMealDays },
+                { label: '恢复天数', value: recoveryDays }
+            ].map(s => `<div class="weekly-stat"><div class="weekly-stat-value">${s.value}</div><div class="weekly-stat-label">${s.label}</div></div>`).join('');
+
+            const daysText = weekRecords.length < 7 ? `本周有 ${weekRecords.length} 天记录，` : '本周 7 天记录，';
+            let tip = '';
+            if (avgStress >= 7) {
+                tip = '案压一直很高，记得给自己留点独处充电的时间。';
+            } else if (avgSleep <= 5) {
+                tip = '睡眠偏少，周末可以补一觉。';
+            } else if (avgBody <= 5) {
+                tip = '身体还在恢复，别着急，给身体时间。';
+            } else if (recoveryDays < 3) {
+                tip = '这周给自己恢复的天数不多，再忙也留一点空白时间。';
+            } else if (goodMealDays < 4) {
+                tip = '这周好好吃饭的日子不多，明天试试下楼吃碗热乎的。';
+            } else {
+                tip = '节奏保持得还可以，按自己的步调继续就行。';
+            }
+
+            noteEl.innerHTML = `<p>${daysText}${resultDesc}。</p>` +
+                `<p>平均能量 ${avgEnergy}，案压 ${avgStress}，睡眠 ${avgSleep}。</p>` +
+                `<p>${tip}</p>`;
+
+            card.classList.add('show');
+            card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function generateWeeklyShareCard() {
+            const canvas = document.getElementById('weeklyCanvas');
+            const ctx = canvas.getContext('2d');
+            const records = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            const weekRecords = records.slice(-7);
+
+            ctx.fillStyle = '#F4F7FA';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.strokeStyle = 'rgba(82, 137, 198, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
+
+            ctx.fillStyle = '#2B3B4C';
+            ctx.font = '600 34px "Songti SC", "Noto Serif SC", "SimSun", serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('本周回顾', canvas.width / 2, 112);
+
+            ctx.font = '13px sans-serif';
+            ctx.fillStyle = '#6B7A89';
+            ctx.fillText('WEEKLY ENERGY REVIEW', canvas.width / 2, 142);
+
+            if (weekRecords.length === 0) {
+                ctx.font = '18px "PingFang SC", "Microsoft YaHei", sans-serif';
+                ctx.fillText('本周还没有记录', canvas.width / 2, 300);
+                downloadWeekly(canvas);
+                return;
+            }
+
+            const avg = key => (weekRecords.reduce((s, r) => s + r[key], 0) / weekRecords.length).toFixed(1);
+            const avgScore = (weekRecords.reduce((s, r) => s + r.avg, 0) / weekRecords.length).toFixed(1);
+            const mvp = weekRecords.reduce((best, r) => r.avg > best.avg ? r : best, weekRecords[0]);
+            const goodMealDays = weekRecords.filter(r => isGoodMeal(r.meal)).length;
+            const recoveryDays = weekRecords.filter(r => (r.recovery || []).some(k => k !== 'none')).length;
+
+            let resultText, resultColor, resultDesc;
+            if (avgScore >= 6.2) {
+                resultText = '顺';
+                resultColor = '#5FA87C';
+                resultDesc = '本周整体在线';
+            } else if (avgScore >= 4.6) {
+                resultText = '稳';
+                resultColor = '#5289C6';
+                resultDesc = '本周算是稳住了';
+            } else {
+                resultText = '缓';
+                resultColor = '#4FA3E0';
+                resultDesc = '本周能量偏低';
+            }
+
+            const startDate = weekRecords[0].date.slice(5).replace('-', '/');
+            const endDate = weekRecords[weekRecords.length - 1].date.slice(5).replace('-', '/');
+            ctx.font = '16px sans-serif';
+            ctx.fillStyle = '#6B7A89';
+            ctx.fillText(`${startDate} - ${endDate}`, canvas.width / 2, 175);
+
+            ctx.font = '600 120px "Songti SC", "Noto Serif SC", "SimSun", serif';
+            ctx.fillStyle = resultColor;
+            ctx.fillText(resultText, canvas.width / 2, 310);
+
+            ctx.font = '18px "PingFang SC", "Microsoft YaHei", sans-serif';
+            ctx.fillStyle = '#6B7A89';
+            ctx.fillText(resultDesc, canvas.width / 2, 350);
+
+            const stats = [
+                { label: '综合得分', value: avgScore },
+                { label: '平均能量', value: avg('energy') },
+                { label: '平均心情', value: avg('mood') },
+                { label: '平均身体', value: avg('body') },
+                { label: '平均睡眠', value: avg('sleep') },
+                { label: '平均案压', value: avg('stress') },
+                { label: '好好吃饭', value: goodMealDays },
+                { label: '恢复天数', value: recoveryDays }
+            ];
+
+            const startX = 90;
+            const startY = 400;
+            const cellW = 210;
+            const cellH = 90;
+            const gapX = 20;
+            const gapY = 20;
+
+            stats.forEach((s, i) => {
+                const col = i % 3;
+                const row = Math.floor(i / 3);
+                const x = startX + col * (cellW + gapX);
+                const y = startY + row * (cellH + gapY);
+
+                ctx.fillStyle = '#FFFFFF';
+                ctx.beginPath();
+                ctx.roundRect(x, y, cellW, cellH, 12);
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(82, 137, 198, 0.15)';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                ctx.fillStyle = '#3E6B97';
+                ctx.font = '600 28px "PingFang SC", "Microsoft YaHei", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(s.value, x + cellW / 2, y + 42);
+
+                ctx.fillStyle = '#6B7A89';
+                ctx.font = '14px sans-serif';
+                ctx.fillText(s.label, x + cellW / 2, y + 70);
+            });
+
+            ctx.textAlign = 'center';
+            ctx.font = '16px "PingFang SC", "Microsoft YaHei", sans-serif';
+            ctx.fillStyle = '#6B7A89';
+            ctx.fillText(`最佳表现日：${mvp.date.slice(5).replace('-', '/')} ${mvp.icon} ${mvp.avg}分`, canvas.width / 2, 748);
+
+            const noteY = 790;
+            ctx.fillStyle = 'rgba(82, 137, 198, 0.07)';
+            ctx.fillRect(80, noteY, canvas.width - 160, 120);
+            ctx.fillStyle = '#5289C6';
+            ctx.fillRect(80, noteY, 4, 120);
+
+            let tip = '';
+            if (avg('stress') >= 7) tip = '案压一直很高，记得给自己留点独处充电的时间。';
+            else if (avg('sleep') <= 5) tip = '睡眠偏少，周末可以补一觉。';
+            else if (avg('body') <= 5) tip = '身体还在恢复，别着急，给身体时间。';
+            else if (recoveryDays < 3) tip = '这周给自己恢复的天数不多，再忙也留一点空白时间。';
+            else if (goodMealDays < 4) tip = '这周好好吃饭的日子不多，明天试试下楼吃碗热乎的。';
+            else tip = '节奏保持得还可以，按自己的步调继续就行。';
+
+            ctx.font = '18px "PingFang SC", "Microsoft YaHei", sans-serif';
+            ctx.fillStyle = '#2B3B4C';
+            wrapText(ctx, `本周综合得分 ${avgScore}，${resultDesc}。${tip}`, canvas.width / 2, noteY + 45, canvas.width - 200, 32);
+
+            ctx.font = '13px sans-serif';
+            ctx.fillStyle = '#6B7A89';
+            ctx.fillText('今日気分 · 许律状态观测站', canvas.width / 2, canvas.height - 80);
+
+            downloadWeekly(canvas);
+        }
+
+        function downloadWeekly(canvas) {
+            const link = document.createElement('a');
+            link.download = `本周回顾-${new Date().toISOString().split('T')[0]}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function copyShareCode() {
+            const records = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            const payload = { v: 1, records: records.slice(-7) };
+            const json = JSON.stringify(payload);
+            const code = btoa(unescape(encodeURIComponent(json)));
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(code).then(() => {
+                    showToast('数据已复制 · 粘贴到备忘录即可备份');
+                }).catch(() => {
+                    fallbackCopy(code);
+                });
+            } else {
+                fallbackCopy(code);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast('数据已复制 · 粘贴到备忘录即可备份');
+            } catch (err) {
+                showToast('复制失败，请手动复制弹窗中的内容');
+                setTimeout(() => alert(text), 300);
+            }
+            document.body.removeChild(textarea);
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+
+        const isSecure = location.protocol === 'https:'
+            || location.hostname === 'localhost'
+            || location.hostname === '127.0.0.1';
+        if ('serviceWorker' in navigator && isSecure) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('kex-vhex-14.js').catch(() => {});
+            });
+        }
+
+        init();
+    </script>
+</body>
+</html>

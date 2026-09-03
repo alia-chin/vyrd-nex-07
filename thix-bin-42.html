@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <title>关怀看板 · 今日気分</title>
+    <style>
+        :root {
+            --paper: #fff7ed;
+            --ink: #3d3d3d;
+            --ink-light: #8a8a8a;
+            --cloud: #f7eadd;
+            --blue-soft: #ffd7a8;
+            --blue-deep: #d96e58;
+            --sun: #f6a93c;
+            --rain: #9fb3c0;
+            --storm: #7a8a94;
+            --sakura: #f4a3a3;
+            --matcha: #8fbc8f;
+            --border: #f2e2d0;
+            --shadow: 0 4px 24px rgba(61,48,40,0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            background: linear-gradient(180deg, var(--paper) 0%, #ffefe3 100%);
+            background-attachment: fixed;
+            color: var(--ink);
+            line-height: 1.7;
+            min-height: 100vh;
+            padding: 24px 16px 48px;
+        }
+
+        .container {
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 32px;
+            position: relative;
+        }
+
+        .title-jp {
+            font-size: 30px;
+            font-weight: 300;
+            letter-spacing: 0.15em;
+            margin-bottom: 4px;
+            display: inline-block;
+            position: relative;
+        }
+
+        .title-jp::before,
+        .title-jp::after {
+            position: absolute;
+            top: 2px;
+            font-size: 22px;
+            opacity: 0.7;
+            pointer-events: none;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .title-jp::before {
+            content: '☁️';
+            left: -38px;
+            animation-delay: 0s;
+        }
+
+        .title-jp::after {
+            content: '☀️';
+            right: -38px;
+            animation-delay: 1.5s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .title-sub {
+            font-size: 13px;
+            color: var(--ink-light);
+            letter-spacing: 0.08em;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 14px;
+            color: var(--ink-light);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .code-input {
+            width: 100%;
+            min-height: 96px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            background: var(--paper);
+            color: var(--ink);
+            resize: vertical;
+            word-break: break-all;
+        }
+
+        .code-input::placeholder { color: #aaa; }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            margin-top: 16px;
+            background: var(--ink);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.05em;
+        }
+
+        .btn:hover { background: var(--blue-deep); }
+
+        .empty-state {
+            text-align: center;
+            padding: 32px;
+            color: var(--ink-light);
+            font-size: 14px;
+        }
+
+        .latest-weather {
+            text-align: center;
+            padding: 16px 0 8px;
+        }
+
+        .weather-icon {
+            font-size: 64px;
+            margin-bottom: 8px;
+        }
+
+        .weather-title {
+            font-size: 24px;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+
+        .weather-date {
+            font-size: 13px;
+            color: var(--ink-light);
+            margin-bottom: 20px;
+        }
+
+        .score-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+        }
+
+        .score-cell {
+            background: var(--paper);
+            border-radius: 10px;
+            padding: 12px 4px;
+            text-align: center;
+        }
+
+        .score-value {
+            font-size: 20px;
+            font-weight: 500;
+            color: var(--blue-deep);
+        }
+
+        .score-label {
+            font-size: 11px;
+            color: var(--ink-light);
+            margin-top: 4px;
+        }
+
+        .meal-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(143, 188, 143, 0.12);
+            padding: 6px 14px;
+            border-radius: 16px;
+            font-size: 13px;
+            color: var(--ink);
+            margin-top: 12px;
+        }
+
+        .recovery-tags {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .recovery-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(143, 188, 143, 0.12);
+            padding: 5px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            color: var(--ink);
+        }
+
+        .chart {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            height: 100px;
+            padding-top: 20px;
+            gap: 6px;
+        }
+
+        .chart-bar {
+            flex: 1;
+            background: var(--blue-soft);
+            border-radius: 4px 4px 0 0;
+            min-height: 4px;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .chart-bar-label {
+            position: absolute;
+            top: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: var(--ink-light);
+            white-space: nowrap;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: var(--paper);
+            border-radius: 10px;
+            font-size: 13px;
+        }
+
+        .history-date {
+            color: var(--ink-light);
+            min-width: 60px;
+        }
+
+        .history-weather {
+            flex: 1;
+            text-align: center;
+        }
+
+        .history-score {
+            color: var(--blue-deep);
+            font-weight: 500;
+        }
+
+        .weekly-result {
+            font-size: 42px;
+            font-weight: 500;
+            text-align: center;
+            margin: 8px 0 20px;
+        }
+
+        .weekly-result.win { color: var(--matcha); }
+        .weekly-result.draw { color: var(--sun); }
+        .weekly-result.lose { color: var(--sakura); }
+
+        .weekly-mvp {
+            text-align: center;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 183, 3, 0.12);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--ink);
+            margin: 0 auto 20px;
+        }
+
+        .weekly-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .weekly-stat {
+            background: var(--paper);
+            border-radius: 12px;
+            padding: 14px 8px;
+            text-align: center;
+        }
+
+        .weekly-stat-value {
+            font-size: 22px;
+            font-weight: 500;
+            color: var(--blue-deep);
+        }
+
+        .weekly-stat-label {
+            font-size: 11px;
+            color: var(--ink-light);
+            margin-top: 4px;
+        }
+
+        .weekly-note {
+            font-size: 14px;
+            color: var(--ink-light);
+            line-height: 1.8;
+            background: var(--paper);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .weekly-note p { margin-bottom: 8px; }
+        .weekly-note p:last-child { margin-bottom: 0; }
+
+        .compose-card textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            background: var(--paper);
+            color: var(--ink);
+            resize: vertical;
+        }
+
+        .tone-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 12px 0 16px;
+        }
+
+        .tone-btn {
+            padding: 6px 14px;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            font-size: 13px;
+            color: var(--ink-light);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tone-btn:hover, .tone-btn.active {
+            background: var(--paper);
+            border-color: var(--blue-soft);
+            color: var(--blue-deep);
+        }
+
+        .hint {
+            font-size: 12px;
+            color: var(--ink-light);
+            margin-top: 12px;
+            line-height: 1.6;
+        }
+
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: 40px;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--ink);
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 24px;
+            font-size: 14px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        @media (max-width: 400px) {
+            .title-jp { font-size: 26px; }
+            .card { padding: 20px; }
+            .score-grid { grid-template-columns: repeat(5, 1fr); gap: 4px; }
+            .score-cell { padding: 10px 2px; }
+            .score-value { font-size: 16px; }
+            .weekly-stats { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+            .weekly-stat { padding: 12px 4px; }
+            .weekly-stat-value { font-size: 18px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="title-jp">关怀看板</div>
+            <div class="title-sub">接收今日気分 · 关心他的一周状态</div>
+        </header>
+
+        <div class="card">
+            <div class="card-title">
+                <span>💌</span>
+                <span>粘贴分享码</span>
+            </div>
+            <textarea class="code-input" id="codeInput" placeholder="把对方发来的分享码粘贴到这里，然后点击解码"></textarea>
+            <button class="btn" id="decodeBtn">解码查看</button>
+            <div class="hint">分享码不含任何账号信息，只是近 7 天记录的加密文本，7 天后会过期。</div>
+        </div>
+
+        <div id="viewerContent" style="display: none;">
+            <div class="card">
+                <div class="card-title">
+                    <span>🌱</span>
+                    <span>最新状态</span>
+                </div>
+                <div class="latest-weather" id="latestWeather"></div>
+                <div class="score-grid" id="latestScores"></div>
+                <div style="text-align: center;">
+                    <div class="meal-tag" id="latestMeal">—</div>
+                </div>
+                <div class="recovery-tags" id="latestRecoveryTags"></div>
+                <div class="hint" id="latestNote" style="margin-top: 16px;"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <span>📈</span>
+                    <span>近7天能量趋势</span>
+                </div>
+                <div class="chart" id="trendChart"></div>
+                <div class="history-list" id="historyList"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <span>📔</span>
+                    <span>本周回顾</span>
+                </div>
+                <div class="weekly-result" id="weeklyResult">—</div>
+                <div style="text-align: center;">
+                    <div class="weekly-mvp" id="weeklyMvp">最佳表现日：—</div>
+                </div>
+                <div class="weekly-stats" id="weeklyStats"></div>
+                <div class="weekly-note" id="weeklyNote"></div>
+            </div>
+
+            <div class="card compose-card">
+                <div class="card-title">
+                    <span>💌</span>
+                    <span>写一句回应</span>
+                </div>
+                <div class="tone-options" id="toneOptions"></div>
+                <textarea id="replyText" placeholder="选个语气，或者自己写一句……"></textarea>
+                <button class="btn" id="copyReplyBtn">复制回应</button>
+                <div class="hint">复制后发给对方，不需要他登录任何东西。</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let currentRecords = [];
+
+        const recoveryOptions = [
+            { key: 'sleep', label: '睡觉', icon: '😴' },
+            { key: 'solitude', label: '独处', icon: '🏠' },
+            { key: 'soccer', label: '看球/踢球', icon: '⚽' },
+            { key: 'walk', label: '散步', icon: '🚶' },
+            { key: 'meal', label: '好好吃饭', icon: '🍜' },
+            { key: 'none', label: '还没有', icon: '🍃' }
+        ];
+
+        const tonePresets = {
+            warm: [
+                '这周有起伏，但你都稳下来了，很厉害。',
+                '看到你有在好好记录，我会一直关注你的。',
+                '状态不好的时候，记得我还在。'
+            ],
+            light: [
+                '本周回顾已阅，允许你摆大巴一周。',
+                '看完觉得你像控球型中场，稳得一批。',
+                '身体值记得往上拉拉，别老伤停补时。'
+            ],
+            cheer: [
+                '下周继续按自己的节奏踢，我陪你。',
+                '顺逆从来不是唯一的比分，照顾好自己也是。',
+                '你处理过更难的局面，这次也一定可以。'
+            ],
+            quiet: [
+                '嗯，我看见了。',
+                '淡淡地过也很好。',
+                '不用回，只是想让你知道我在。'
+            ]
+        };
+
+        function init() {
+            document.getElementById('decodeBtn').addEventListener('click', decodeAndRender);
+            document.getElementById('copyReplyBtn').addEventListener('click', copyReply);
+            renderToneOptions();
+
+            const params = new URLSearchParams(location.search);
+            const code = params.get('code');
+            if (code) {
+                document.getElementById('codeInput').value = code;
+                decodeAndRender();
+            }
+        }
+
+        function renderToneOptions() {
+            const labels = { warm: '温柔', light: '轻松', cheer: '打气', quiet: '淡淡' };
+            const container = document.getElementById('toneOptions');
+            container.innerHTML = Object.keys(tonePresets).map((key, idx) =>
+                `<button class="tone-btn ${idx === 0 ? 'active' : ''}" data-tone="${key}">${labels[key]}</button>`
+            ).join('');
+
+            container.querySelectorAll('.tone-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    container.querySelectorAll('.tone-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    fillReply(btn.dataset.tone);
+                });
+            });
+
+            fillReply('warm');
+        }
+
+        function fillReply(tone) {
+            const presets = tonePresets[tone];
+            const text = presets[Math.floor(Math.random() * presets.length)];
+            document.getElementById('replyText').value = text;
+        }
+
+        function decodeAndRender() {
+            let input = document.getElementById('codeInput').value.trim();
+            if (!input) {
+                showToast('请先粘贴分享码');
+                return;
+            }
+
+            // URL 参数中的 + 会被解码为空格，这里还原
+            input = input.replace(/\s+/g, '+');
+
+            try {
+                const json = decodeURIComponent(escape(atob(input)));
+                const payload = JSON.parse(json);
+                if (!payload || !Array.isArray(payload.records)) {
+                    throw new Error('invalid payload');
+                }
+                currentRecords = payload.records.slice(-7).sort((a, b) => a.date.localeCompare(b.date));
+                if (currentRecords.length === 0) {
+                    showToast('分享码里没有记录');
+                    return;
+                }
+                renderViewer();
+                document.getElementById('viewerContent').style.display = 'block';
+                document.getElementById('viewerContent').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } catch (e) {
+                showToast('分享码解析失败，请检查是否复制完整');
+            }
+        }
+
+        function renderViewer() {
+            renderLatest();
+            renderTrend();
+            renderWeekly();
+        }
+
+        function renderLatest() {
+            const latest = currentRecords[currentRecords.length - 1];
+            const weather = determineWeather(latest);
+
+            document.getElementById('latestWeather').innerHTML = `
+                <div class="weather-icon">${latest.icon || weather.icon}</div>
+                <div class="weather-title">${latest.weather || weather.title}</div>
+                <div class="weather-date">${latest.date}</div>
+            `;
+
+            const metrics = [
+                { label: '能量', key: 'energy' },
+                { label: '心情', key: 'mood' },
+                { label: '身体', key: 'body' },
+                { label: '睡眠', key: 'sleep' },
+                { label: '案压', key: 'stress' }
+            ];
+
+            document.getElementById('latestScores').innerHTML = metrics.map(m => `
+                <div class="score-cell">
+                    <div class="score-value">${latest[m.key]}</div>
+                    <div class="score-label">${m.label}</div>
+                </div>
+            `).join('');
+
+            const mealEl = document.getElementById('latestMeal');
+            if (latest.meal === 'dine-in') {
+                mealEl.innerHTML = '<span>🍜</span><span>今日堂食</span>';
+                mealEl.style.display = 'inline-flex';
+            } else if (latest.meal === 'takeout') {
+                mealEl.innerHTML = '<span>🥡</span><span>外卖 / 没吃</span>';
+                mealEl.style.display = 'inline-flex';
+            } else {
+                mealEl.style.display = 'none';
+            }
+
+            const recoveryTagsEl = document.getElementById('latestRecoveryTags');
+            const activeRecoveries = (latest.recovery || []).filter(k => k !== 'none');
+            if (activeRecoveries.length) {
+                recoveryTagsEl.innerHTML = activeRecoveries.map(key => {
+                    const opt = recoveryOptions.find(o => o.key === key) || { icon: '✨', label: key };
+                    return `<span class="recovery-tag"><span>${opt.icon}</span><span>${opt.label}</span></span>`;
+                }).join('');
+                recoveryTagsEl.style.display = 'flex';
+            } else {
+                recoveryTagsEl.style.display = 'none';
+            }
+
+            const noteEl = document.getElementById('latestNote');
+            if (latest.note) {
+                noteEl.textContent = `备注：${latest.note}`;
+                noteEl.style.display = 'block';
+            } else {
+                noteEl.style.display = 'none';
+            }
+        }
+
+        function renderTrend() {
+            const chartEl = document.getElementById('trendChart');
+            const listEl = document.getElementById('historyList');
+            const maxScore = Math.max(...currentRecords.map(r => r.avg), 1);
+
+            chartEl.innerHTML = currentRecords.map(r => {
+                const height = Math.max(4, (r.avg / maxScore) * 90);
+                const label = r.date.slice(5).replace('-', '/');
+                return `<div class="chart-bar" style="height: ${height}%">
+                    <div class="chart-bar-label">${label}</div>
+                </div>`;
+            }).join('');
+
+            listEl.innerHTML = currentRecords.slice().reverse().map(r => {
+                const date = r.date.slice(5).replace('-', '/');
+                const mealTag = r.meal === 'dine-in' ? '🍜' : (r.meal === 'takeout' ? '🥡' : '');
+                const recoveryIcons = (r.recovery || []).filter(k => k !== 'none').map(key => {
+                    const opt = recoveryOptions.find(o => o.key === key) || { icon: '✨' };
+                    return `<span style="margin-left:4px;">${opt.icon}</span>`;
+                }).join('');
+                return `<div class="history-item">
+                    <div class="history-date">${date}</div>
+                    <div class="history-weather">${r.icon || '·'} ${r.weather || '—'} ${mealTag ? `<span style="margin-left:4px;">${mealTag}</span>` : ''}${recoveryIcons}</div>
+                    <div class="history-score">${r.avg}分</div>
+                </div>`;
+            }).join('');
+        }
+
+        function renderWeekly() {
+            const resultEl = document.getElementById('weeklyResult');
+            const mvpEl = document.getElementById('weeklyMvp');
+            const statsEl = document.getElementById('weeklyStats');
+            const noteEl = document.getElementById('weeklyNote');
+
+            const avg = key => (currentRecords.reduce((s, r) => s + r[key], 0) / currentRecords.length).toFixed(1);
+            const avgScore = (currentRecords.reduce((s, r) => s + r.avg, 0) / currentRecords.length).toFixed(1);
+            const mvp = currentRecords.reduce((best, r) => r.avg > best.avg ? r : best, currentRecords[0]);
+            const dineDays = currentRecords.filter(r => r.meal === 'dine-in').length;
+            const recoveryDays = currentRecords.filter(r => (r.recovery || []).some(k => k !== 'none')).length;
+
+            let resultText, resultClass, resultDesc;
+            if (avgScore >= 7) {
+                resultText = '顺';
+                resultClass = 'win';
+                resultDesc = '本周整体在线，状态不错';
+            } else if (avgScore >= 5) {
+                resultText = '稳';
+                resultClass = 'draw';
+                resultDesc = '本周起起伏伏，算是稳住了';
+            } else {
+                resultText = '缓';
+                resultClass = 'lose';
+                resultDesc = '本周能量偏低，下周慢慢恢复';
+            }
+
+            resultEl.textContent = resultText;
+            resultEl.className = 'weekly-result ' + resultClass;
+            mvpEl.textContent = `最佳表现日：${mvp.date.slice(5).replace('-', '/')} ${mvp.icon || ''} ${mvp.avg}分`;
+
+            statsEl.innerHTML = [
+                { label: '综合得分', value: avgScore },
+                { label: '平均能量', value: avg('energy') },
+                { label: '平均心情', value: avg('mood') },
+                { label: '平均身体', value: avg('body') },
+                { label: '平均睡眠', value: avg('sleep') },
+                { label: '平均案压', value: avg('stress') },
+                { label: '堂食天数', value: dineDays },
+                { label: '恢复天数', value: recoveryDays }
+            ].map(s => `<div class="weekly-stat"><div class="weekly-stat-value">${s.value}</div><div class="weekly-stat-label">${s.label}</div></div>`).join('');
+
+            const daysText = currentRecords.length < 7 ? `本周有 ${currentRecords.length} 天记录，` : '本周 7 天记录，';
+            let tip = '';
+            if (avg('stress') >= 7) tip = '案压一直很高，可以提醒他留点独处充电的时间。';
+            else if (avg('sleep') <= 5) tip = '睡眠偏少，周末可以提醒他补一觉。';
+            else if (avg('body') <= 5) tip = '身体还在恢复，别着急，给他时间。';
+            else if (recoveryDays < 3) tip = '这周他给自己恢复的天数不多，可以提醒他留一点空白时间。';
+            else if (dineDays < 4) tip = '这周堂食次数不多，可以提醒他多下楼吃几顿。';
+            else tip = '节奏保持得还可以，按他的步调继续就好。';
+
+            noteEl.innerHTML = `<p>${daysText}${resultDesc}。</p>` +
+                `<p>平均能量 ${avg('energy')}，案压 ${avg('stress')}，睡眠 ${avg('sleep')}。</p>` +
+                `<p>${tip}</p>`;
+        }
+
+        function determineWeather(d) {
+            const avg = (d.energy + d.mood + d.body) / 3;
+            if (d.body <= 3) return { icon: '🌫️', title: '雾' };
+            if (d.energy <= 3 && d.stress >= 7) return { icon: '⛈️', title: '雷雨' };
+            if (d.energy <= 4 && d.mood <= 4) return { icon: '🌧️', title: '小雨' };
+            if (avg >= 7 && d.stress <= 5) return { icon: '☀️', title: '晴' };
+            if (avg >= 6 && d.stress <= 6) return { icon: '🌤️', title: '晴间多云' };
+            if (avg <= 5) return { icon: '☁️', title: '阴' };
+            return { icon: '⛅', title: '多云' };
+        }
+
+        function copyReply() {
+            const text = document.getElementById('replyText').value.trim();
+            if (!text) {
+                showToast('先写一句回应吧');
+                return;
+            }
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => showToast('回应已复制')).catch(() => fallbackCopy(text));
+            } else {
+                fallbackCopy(text);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast('回应已复制');
+            } catch (err) {
+                showToast('复制失败，请手动复制');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+
+        init();
+    </script>
+</body>
+</html>
