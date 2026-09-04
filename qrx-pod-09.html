@@ -1343,7 +1343,7 @@
             }
         }
 
-        function drawFace(ctx, x, y, r, face) {
+        function drawFace(ctx, x, y, r, face, blink) {
             const c = 'rgba(43, 59, 76, 0.78)';
             ctx.fillStyle = c;
             ctx.strokeStyle = c;
@@ -1363,6 +1363,13 @@
                     ctx.lineTo(ex - er * 1.4, eyeY + er * 1.4);
                     ctx.stroke();
                 });
+            } else if (blink) {
+                ctx.beginPath();
+                [x - dx, x + dx].forEach(ex => {
+                    ctx.moveTo(ex - er * 1.6, eyeY);
+                    ctx.lineTo(ex + er * 1.6, eyeY);
+                });
+                ctx.stroke();
             } else {
                 ctx.beginPath();
                 ctx.arc(x - dx, eyeY, er, 0, Math.PI * 2);
@@ -1397,7 +1404,7 @@
             ctx.stroke();
         }
 
-        function drawBlob(ctx, x, y, rot, mood, seed) {
+        function drawBlob(ctx, x, y, rot, mood, seed, blink) {
             const rand = seededRand(seed);
             ctx.save();
             ctx.translate(x, y);
@@ -1419,7 +1426,7 @@
             ctx.ellipse(-BLOB.r * 0.3, -BLOB.r * 0.38, BLOB.r * 0.2, BLOB.r * 0.1, -0.6, 0, Math.PI * 2);
             ctx.fill();
 
-            drawFace(ctx, 0, 0, BLOB.r, mood.face);
+            drawFace(ctx, 0, 0, BLOB.r, mood.face, blink);
             ctx.restore();
         }
 
@@ -1460,20 +1467,79 @@
             ctx.stroke();
         }
 
-        function drawJarScene(ctx, items, dropIdx, dropY) {
+        function drawJarScene(ctx, items, dropIdx, dropY, now) {
             ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
             items.forEach((rec, i) => {
                 const mood = jarMoods[rec.weather] || jarMoods['多云'];
                 const t = blobTarget(i);
-                const y = (i === dropIdx) ? dropY : t.y;
-                drawBlob(ctx, t.x, y, t.rot, mood, i * 13 + 5);
+                let y = (i === dropIdx) ? dropY : t.y;
+                let rot = t.rot;
+                let blink = false;
+                if (now != null) {
+                    const s = now / 1000;
+                    y += Math.sin(s * (0.9 + (i % 5) * 0.16) + i * 1.93) * 2.6;
+                    rot += Math.sin(s * 0.55 + i * 2.41) * 0.045;
+                    const cyc = 3.4 + (i % 4) * 0.8;
+                    blink = ((s + i * 1.37) % cyc) < 0.15;
+                }
+                drawBlob(ctx, t.x, y, rot, mood, i * 13 + 5, blink);
             });
             drawJarShell(ctx);
         }
 
+        /* 待机微动画：胶囊轻轻浮动、偶尔眨眼；切后台暂停，尊重系统减少动态设置 */
+        let jarIdleRaf = null;
+        let jarIdleState = null;
+
+        function startJarIdle(ctx, items) {
+            if (!items.length || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                jarIdleState = null;
+                drawJarScene(ctx, items, -1, 0);
+                return;
+            }
+            jarIdleState = { ctx, items };
+            runJarIdle();
+        }
+
+        function stopJarIdle() {
+            jarIdleState = null;
+            if (jarIdleRaf !== null) {
+                cancelAnimationFrame(jarIdleRaf);
+                jarIdleRaf = null;
+            }
+        }
+
+        function runJarIdle() {
+            if (jarIdleRaf !== null) {
+                cancelAnimationFrame(jarIdleRaf);
+                jarIdleRaf = null;
+            }
+            if (!jarIdleState || document.hidden) return;
+            let last = 0;
+            const tick = (now) => {
+                jarIdleRaf = requestAnimationFrame(tick);
+                if (now - last < 33) return;
+                last = now;
+                drawJarScene(jarIdleState.ctx, jarIdleState.items, -1, 0, now);
+            };
+            jarIdleRaf = requestAnimationFrame(tick);
+        }
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                if (jarIdleRaf !== null) {
+                    cancelAnimationFrame(jarIdleRaf);
+                    jarIdleRaf = null;
+                }
+            } else {
+                runJarIdle();
+            }
+        });
+
         function renderJar(dropLatest) {
             const canvas = document.getElementById('jarCanvas');
             if (!canvas) return;
+            stopJarIdle();
             const ctx = canvas.getContext('2d');
             const records = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
             const jarIndex = records.length ? Math.floor((records.length - 1) / JAR_SIZE) : 0;
@@ -1496,10 +1562,12 @@
                     if (justFilled) {
                         localStorage.setItem(JAR_CELEBRATED_KEY, String(records.length));
                         celebrateJarFull(ctx, items, jarIndex + 1, records.slice(-JAR_SIZE));
+                    } else {
+                        startJarIdle(ctx, items);
                     }
                 });
             } else {
-                drawJarScene(ctx, items, -1, 0);
+                startJarIdle(ctx, items);
             }
         }
 
@@ -1568,7 +1636,7 @@
                 if (p < 1) {
                     requestAnimationFrame(frame);
                 } else {
-                    drawJarScene(ctx, items, -1, 0);
+                    startJarIdle(ctx, items);
                     showJarCardModal(jarNo, jarRecords);
                 }
             }
